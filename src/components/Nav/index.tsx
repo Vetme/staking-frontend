@@ -13,25 +13,27 @@ import {
   IconM,
   DropDownCon,
   MMenuR,
-  ChainWrapper,
 } from "./styles";
-
+//ChainWrapper
 import { useLocation, useNavigate } from "react-router-dom";
 import { Center, Flex, Spacer, Overlay } from "../";
 import { Button } from "@/components/Button";
 import { truncate } from "@/helpers";
-import { Decor, LogoSVG, Wallet, Logout, AngleDown } from "../Icons";
+import { Decor, LogoSVG, Wallet, Logout } from "../Icons";
+import { useWeb3Modal } from "@web3modal/react";
+import { useAccount } from "wagmi";
 
 const Navigation = () => {
-  const [, setShow] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [menu, setMenu] = useState<boolean>(false);
-  const [cMenu, setCMenu] = useState<boolean>(false);
-  const [account] = useState<string>("");
+  const { open: openModal, close: closeModel } = useWeb3Modal();
+  // const [cMenu, setCMenu] = useState<boolean>(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   // const allChains = useMemo(() => chains, []);
+  const { address } = useAccount();
+
   let prevScroll = 0;
 
   const header: HTMLElement | null = document.getElementById("nav");
@@ -69,28 +71,17 @@ const Navigation = () => {
             <Logo to="/">
               <LogoSVG />
             </Logo>
-            <NavItems>
-              <Item to="/">
-                <span>Home</span>
-              </Item>
-              <Item to="p2p">
-                <span>P2P Escrow</span>
-              </Item>
-              {/* <Item to="swap">
-                <span>Swap</span>
-              </Item> */}
-              <a
-                className="item"
-                download
-                target="_blank"
-                href="https://vetmeblock.com/assets/whitepaper.pdf"
-              >
-                <span>White Paper</span>
-              </a>
-              <Item to="/how-to">How to</Item>
-            </NavItems>
+
             <Action>
-              <ChainWrapper>
+              <NavItems style={{ marginRight: 20 }}>
+                <Item to="/how-to">
+                  <span>How to</span>
+                </Item>
+                <Item to="faq">
+                  <span>FAQ</span>
+                </Item>
+              </NavItems>
+              {/* <ChainWrapper>
                 <Button
                   onClick={() => setCMenu((prev) => !prev)}
                   className="secondary"
@@ -100,37 +91,37 @@ const Navigation = () => {
                 </Button>
 
                 <DropDownCon className={cMenu ? "active" : ""}>
-                  {/* {allChains.map((chain: number, i: number) => (
+                  {allChains.map((chain: number, i: number) => (
                     <ListItem key={i} onClick={() => handleSetChain(chain)}>
                       <div className="icon">
                         <img src={chain.logoUrl} />
                       </div>
                       {chain.name}
                     </ListItem>
-                  ))} */}
+                  ))}
                 </DropDownCon>
-              </ChainWrapper>
+              </ChainWrapper> */}
               <Spacer width={8} />
-              {account ? (
+              {address ? (
                 <Flex align="center">
                   <Button
                     onClick={() => setMenu((prev) => !prev)}
                     className="secondary"
                   >
                     <Wallet />
-                    {truncate(account || "", 9)}
+                    {truncate(address || "", 9)}
                   </Button>
                 </Flex>
               ) : (
-                <Button className="primary " onClick={() => setShow(true)}>
+                <Button className="primary " onClick={() => openModal()}>
                   Connect Wallet
                 </Button>
               )}
               <DropDownCon className={menu ? "active" : ""}>
-                <MMenuItem style={{ textAlign: "start" }} to="/dashboard">
-                  My Trades
+                <MMenuItem style={{ textAlign: "start" }} to="/stakes">
+                  My Stakes
                 </MMenuItem>
-                <Button className="primary ">
+                <Button onClick={() => closeModel()} className="primary ">
                   <Logout />
                   Disconnect
                 </Button>
@@ -149,31 +140,22 @@ const Navigation = () => {
                 <Decor />
               </IconM>
               <MMenuInner>
-                <MMenuItem to="/">Home</MMenuItem>
-                <MMenuItem to="p2p">P2P Escrow</MMenuItem>
-                {/* <MMenuItem to="swap">Swap</MMenuItem> */}
-                {/* <MMenuItem to="test-tokens">Test Tokens</MMenuItem> */}
-                <MMenuItem
-                  target="_blank"
-                  to="https://vetmeblock.com/assets/whitepaper.pdf"
-                >
-                  White Paper
-                </MMenuItem>
                 <MMenuItem to="/how-to">How to</MMenuItem>
+                <MMenuItem to="/">Faq</MMenuItem>
 
                 <Spacer height={32} />
                 <Center>
-                  {account ? (
+                  {address ? (
                     <Flex align="center">
                       <Button
                         onClick={() => navigate("/dashboard")}
                         className="secondary "
                       >
-                        <Wallet /> {truncate(account || "", 9)}{" "}
+                        <Wallet /> {truncate(address || "", 9)}{" "}
                       </Button>
                     </Flex>
                   ) : (
-                    <Button className="primary" onClick={() => setShow(true)}>
+                    <Button className="primary" onClick={() => openModal()}>
                       Connect Wallet
                     </Button>
                   )}

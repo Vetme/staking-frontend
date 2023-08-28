@@ -1,5 +1,4 @@
 import styled, { css } from "styled-components";
-import { Flex } from "..";
 import { NavLink } from "react-router-dom";
 import { PRIMARY_COLOR, SECONDARY_COLOR_GREEN } from "./../../themes";
 
@@ -228,6 +227,7 @@ export const BarWrapper = styled.div``;
 export const Action = styled.div`
   position: relative;
   display: flex;
+  align-items:center;
   @media (max-width: 640px) {
     display: none;
   }

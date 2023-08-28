@@ -4,19 +4,19 @@ export { default as Footer } from "./Footer";
 export const Text = styled.span<{
   weight?: string;
   size?:
-    | "h1"
-    | "h2"
-    | "h3"
-    | "h4"
-    | "h5"
-    | "big"
-    | "normal"
-    | "small"
-    | "tiny"
-    | "s1"
-    | "s2"
-    | "s3"
-    | "s4";
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "h5"
+  | "big"
+  | "normal"
+  | "small"
+  | "tiny"
+  | "s1"
+  | "s2"
+  | "s3"
+  | "s4";
   color?: string;
   sizeM?: string;
   padding?: string;
@@ -28,30 +28,30 @@ export const Text = styled.span<{
     size == "h1"
       ? "56px"
       : size == "h2"
-      ? "40px"
-      : size == "h3"
-      ? "26px"
-      : size == "h4"
-      ? "18px"
-      : size == "h5"
-      ? "14px"
-      : size == "big"
-      ? "20px"
-      : size == "normal"
-      ? "18px"
-      : size == "small"
-      ? "16px"
-      : size == "tiny"
-      ? "14px"
-      : size == "s1"
-      ? "18px"
-      : size == "s2"
-      ? "16px"
-      : size == "s3"
-      ? "14px"
-      : size == "s4"
-      ? "14px"
-      : "18px"};
+        ? "40px"
+        : size == "h3"
+          ? "26px"
+          : size == "h4"
+            ? "18px"
+            : size == "h5"
+              ? "14px"
+              : size == "big"
+                ? "20px"
+                : size == "normal"
+                  ? "18px"
+                  : size == "small"
+                    ? "16px"
+                    : size == "tiny"
+                      ? "14px"
+                      : size == "s1"
+                        ? "18px"
+                        : size == "s2"
+                          ? "16px"
+                          : size == "s3"
+                            ? "14px"
+                            : size == "s4"
+                              ? "14px"
+                              : "18px"};
   line-height: 150%;
   color: ${({ color }) => color};
 
@@ -67,35 +67,35 @@ export const Text = styled.span<{
   }
   @media (max-width: 640px) {
     font-size: ${({ sizeM }) =>
-      sizeM == "h1"
-        ? "56px"
-        : sizeM == "h2"
+    sizeM == "h1"
+      ? "56px"
+      : sizeM == "h2"
         ? "40px"
         : sizeM == "h3"
-        ? "26px"
-        : sizeM == "h4"
-        ? "18px"
-        : sizeM == "h5"
-        ? "14px"
-        : sizeM == "big"
-        ? "20px"
-        : sizeM == "normal"
-        ? "18px"
-        : sizeM == "small"
-        ? "16px"
-        : sizeM == "tiny"
-        ? "14px"
-        : sizeM == "tiny-2"
-        ? "10px"
-        : sizeM == "s1"
-        ? "18px"
-        : sizeM == "s2"
-        ? "16px"
-        : sizeM == "s3"
-        ? "14px"
-        : sizeM == "s4"
-        ? "14px"
-        : "14px"};
+          ? "26px"
+          : sizeM == "h4"
+            ? "18px"
+            : sizeM == "h5"
+              ? "14px"
+              : sizeM == "big"
+                ? "20px"
+                : sizeM == "normal"
+                  ? "18px"
+                  : sizeM == "small"
+                    ? "16px"
+                    : sizeM == "tiny"
+                      ? "14px"
+                      : sizeM == "tiny-2"
+                        ? "10px"
+                        : sizeM == "s1"
+                          ? "18px"
+                          : sizeM == "s2"
+                            ? "16px"
+                            : sizeM == "s3"
+                              ? "14px"
+                              : sizeM == "s4"
+                                ? "14px"
+                                : "14px"};
   }
 `;
 
@@ -104,11 +104,11 @@ export const Flex = styled.div<{
   align?: string;
   gap?: number;
   justify?:
-    | "space-between"
-    | "space-evenly"
-    | "space-around"
-    | "center"
-    | "flex-end";
+  | "space-between"
+  | "space-evenly"
+  | "space-around"
+  | "center"
+  | "flex-end";
   directionM?: string;
   margin?: string;
   wrap?: boolean;
@@ -167,7 +167,7 @@ export const InputCon = styled.div`
 `;
 export const InputBox = styled.div<{ required?: boolean }>`
   display: flex;
-  background-image: url(/input-shape.png);
+  background-image: url(/images/bg/input.svg);
   background-repeat: no-repeat;
   background-position: top center;
   background-size: 100% 100%;
@@ -190,8 +190,8 @@ export const InputBox = styled.div<{ required?: boolean }>`
     left: 38px;
 
     ${({ required }) =>
-      required &&
-      `
+    required &&
+    `
       &:after {
       content: "*";
       position: absolute;
@@ -216,7 +216,7 @@ export const InputBox = styled.div<{ required?: boolean }>`
   }
 
   &.standard {
-    width: 383px;
+    /* width: 383px; */
     @media (max-width: 640px) {
       width: 100%;
     }
@@ -236,6 +236,7 @@ export const Input = styled.input`
   font-weight: 400;
   font-size: 18px;
   /* width: 30%; */
+  background:transparent;
   color: #170728;
   margin-left: 38px;
 
@@ -259,6 +260,7 @@ export const InputInner = styled.div`
 
   justify-content: space-between;
   width: 100%;
+  
 
   select {
     left: 32px;
@@ -326,6 +328,80 @@ export const CustomLink = styled.a`
     }
     span:nth-child(3) {
       right: -14px;
+    }
+  }
+`;
+
+export const ActionBtn = styled.button`
+  all: unset;
+  background: #ABE5B9;
+  /* height: 83px; */
+  border: 1px solid #2e203e;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 18px;
+  position: relative;
+  line-height: 83px;
+  color: #170728;
+  cursor: pointer;
+  text-align: center;
+  z-index: 50;
+  transition: 0.3s ease-in-out;
+  padding:0px 20px; 
+
+  &:hover,
+  :active {
+    background: #BEFECD;
+  }
+  div {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+
+    height: 55px;
+    line-height: 55px;
+    width: 55px;
+    border-radius: 100px;
+    background: #170728;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    border: 1px solid #2e203e;
+    height: 100%;
+    width: 100%;
+    bottom: -6px;
+    left: -6px;
+    border-radius: 12px;
+    z-index: -1;
+    border-top: none;
+    border-right: none;
+  }
+
+  &.sm {
+    height: 54px;
+    line-height: 54px;
+  }
+
+  &.full {
+    width: -webkit-fill-available;
+    display: block;
+  }
+
+
+  &.secondary {
+    background: #fbf2ff;
+    border: 1px solid #2e203e;
+    &:hover,
+    :active {
+      background: #f7f0fb;
+    }
+  }
+  &.icon {
+    svg {
+      margin-top: 14px;
     }
   }
 `;
