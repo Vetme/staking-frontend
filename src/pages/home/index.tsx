@@ -1,10 +1,16 @@
 import { ActionBtn, Spacer } from "@/components";
-import { StakingModal } from "@/components/Modal";
+import { StakedModal, StakingModal } from "@/components/Modal";
 import StackingAds from "@/components/StackingAds";
 import { useState } from "react";
 
+enum ModelPop {
+  Stake = "stake",
+  Staked = "staked",
+}
+
 const Home = () => {
-  const [show, setShow] = useState<boolean>(false);
+  const [show, setShow] = useState<ModelPop | undefined>(undefined);
+
   return (
     <div>
       <div className="h-screen ">
@@ -14,12 +20,24 @@ const Home = () => {
 
         <Spacer />
 
-        <div onClick={() => setShow(true)} className="container">
+        <div onClick={() => setShow(ModelPop.Stake)} className="container">
           <ActionBtn>Open Stake</ActionBtn>
+        </div>
+
+        <div onClick={() => setShow(ModelPop.Staked)} className="container">
+          <ActionBtn>Open Staked</ActionBtn>
         </div>
       </div>
 
-      <StakingModal show={show} handleClose={() => setShow(false)} />
+      <StakingModal
+        show={show == ModelPop.Stake ? true : false}
+        handleClose={() => setShow(undefined)}
+      />
+
+      <StakedModal
+        show={show == ModelPop.Staked ? true : false}
+        handleClose={() => setShow(undefined)}
+      />
     </div>
   );
 };

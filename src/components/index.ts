@@ -335,14 +335,16 @@ export const CustomLink = styled.a`
 export const ActionBtn = styled.button`
   all: unset;
   background: #ABE5B9;
-  /* height: 83px; */
+  height: 71px;
+    display: block;
+    line-height: 71px;
+
   border: 1px solid #2e203e;
   border-radius: 12px;
   text-transform: uppercase;
   font-weight: 400;
   font-size: 18px;
   position: relative;
-  line-height: 83px;
   color: #170728;
   cursor: pointer;
   text-align: center;
