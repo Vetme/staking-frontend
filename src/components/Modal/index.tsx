@@ -1,9 +1,17 @@
 import styled from "styled-components";
 import { ActionBtn, Flex, Input, InputBox, InputInner, Spacer, Text } from "..";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import InfoBox from "../InfoBox";
 import { ArrowRight, Dot, LineDivide } from "../Icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { getERC20Contract, getStakingContract } from "@/helpers/contract";
+import { contracts, stakingToken } from "@/lib/constants";
+import { useAccount, useChainId } from "wagmi";
+import { useEthersProvider } from "@/hooks/useProvider";
+import { useEthersSigner } from "@/hooks/useSigner";
+import { parseUnits } from "ethers";
+import { fromBigNumber, getIMonth, getStatus, revertMatch } from "@/helpers";
+import { toast } from "react-toastify";
 
 const overlay = {
   hidden: { opacity: 0 },
@@ -63,6 +71,9 @@ const Inner = styled.div`
   /* transform: translateX(-50%); */
 
   @media (max-width: 640px) {
+    background: #fff;
+    background-image: none;
+    padding: 50px 10px 20px 10px;
     height: auto;
     /* background-image: url(/images/bg/message-m.png); */
   }
@@ -84,6 +95,8 @@ const SInner = styled.div`
 
   @media (max-width: 640px) {
     height: auto;
+    background-image: url(/images/bg/staked-m.svg);
+    padding: 50px 21px 50px 21px;
   }
 `;
 
@@ -101,10 +114,11 @@ const Close = styled.div`
   cursor: pointer;
 
   @media (max-width: 640px) {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     top: -3px;
-    right: 5px;
+    right: -2px;
+    border-radius: 6px;
   }
 `;
 
@@ -114,8 +128,8 @@ const Anc = styled.div`
   top: 5px;
 
   @media (max-width: 640px) {
-    left: 78px;
-    top: -2px;
+    left: 48px;
+    top: -5px;
   }
 `;
 const Contain = styled.div`
@@ -135,6 +149,10 @@ const FormCon = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  @media (max-width: 640px) {
+    border: 1px solid transparent;
+  }
 `;
 
 const Summary = styled.div`
@@ -150,6 +168,11 @@ const StakeCon = styled.div`
   display: flex;
   gap: 49px;
   height: 100%;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 20px;
+  }
 `;
 
 const StakedCon = styled.div`
@@ -157,12 +180,12 @@ const StakedCon = styled.div`
 `;
 
 const Wrapper = styled.div``;
-const StakingInfo = styled.div`
-  border-radius: 3px;
-  background: #eff1ea;
-  padding: 23px 27px;
-  width: 100%;
-`;
+// const StakingInfo = styled.div`
+//   border-radius: 3px;
+//   background: #eff1ea;
+//   padding: 23px 27px;
+//   width: 100%;
+// `;
 const StateInfo = styled.div`
   padding: 10px;
   border-radius: 8px;
@@ -181,16 +204,16 @@ const Divide = styled.div`
   position: relative;
 `;
 
-const Apr = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 10px;
-  background: #170728;
-  height: 55px;
-  padding: 0px 18px;
-  color: #fff;
-`;
+// const Apr = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   border-radius: 10px;
+//   background: #170728;
+//   height: 55px;
+//   padding: 0px 18px;
+//   color: #fff;
+// `;
 
 const SummaryCon = styled.div`
   display: flex;
@@ -275,6 +298,119 @@ export const StakingModal = ({
   handleClose: () => void;
   show: boolean;
 }) => {
+  const [allowance, setAllowance] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  // const [staking, setStaking] = useState<boolean>(false);
+  const [approving, setApproving] = useState<boolean>(false);
+  const chainId: number = useChainId();
+  const { address } = useAccount();
+
+  const provider = useEthersProvider();
+  const signer = useEthersSigner();
+
+  const getAllowance = async () => {
+    const contract: any = getERC20Contract(
+      contracts.token[chainId],
+      chainId as any,
+      provider
+    );
+
+    if (!address) return;
+    const allowance = await contract.allowance(
+      address,
+      contracts.staking[chainId]
+    );
+
+    const value = fromBigNumber(
+      allowance.toString(),
+      stakingToken[chainId].decimal
+    );
+    setAllowance(value);
+  };
+
+  const approve = async () => {
+    setApproving(true);
+    const contract: any = getERC20Contract(
+      contracts.token[chainId],
+      chainId as any,
+      signer
+    );
+
+    try {
+      const value = parseUnits(
+        amount.toString(),
+        stakingToken[chainId].decimal
+      );
+
+      const tx = await contract.approve(contracts.staking[chainId], value);
+
+      setApproving(false);
+      const receipt = await tx.wait();
+      console.log(receipt);
+      getAllowance();
+    } catch (err: any) {
+      const match = revertMatch(err);
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setApproving(false);
+    }
+  };
+
+  const stake = async () => {
+    setLoading(true);
+    const contract: any = getStakingContract(chainId as any, signer);
+
+    try {
+      const value = parseUnits(
+        amount.toString(),
+        stakingToken[chainId].decimal
+      );
+
+      const tx = await contract.stake(value);
+      setLoading(false);
+      const receipt = await tx.wait();
+      console.log(receipt);
+      getAllowance();
+      toast.success("Stake successful, Check back to claim your reward later", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    } catch (err: any) {
+      const match = revertMatch(err);
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleStake = async () => {
+    if (amount == 0) return;
+    if (allowance >= amount) {
+      await stake();
+    } else {
+      alert();
+      await approve();
+    }
+  };
+
+  useEffect(() => {
+    getAllowance();
+  }, []);
+
   return (
     <Modal {...{ handleClose, show }}>
       <Inner
@@ -339,33 +475,17 @@ export const StakingModal = ({
                 <Spacer height={30} />
 
                 <InputBox className="standard">
-                  <label htmlFor="">Type</label>
-                  <InputInner>
-                    <Input
-                      onChange={() => null}
-                      name="telegram"
-                      value={""}
-                      type="text"
-                      step={0.1}
-                      placeholder="3 Month"
-                    />
-                  </InputInner>
-                </InputBox>
-
-                <Spacer height={30} />
-
-                <InputBox className="standard">
                   <label htmlFor="">Lock Amount</label>
                   <InputInner>
                     <Input
-                      onChange={() => null}
+                      onChange={(e: any) => setAmount(e.target.value)}
                       name="telegram"
-                      value={""}
+                      value={amount || ""}
                       type="text"
                       step={0.1}
                       placeholder="ENTER AMOUNT"
                     />
-                    <Flex justify="flex-end" gap={10}>
+                    <Flex className="max" justify="flex-end" gap={10}>
                       <Text size="s2">XPT</Text>|
                       <Text
                         role="button"
@@ -381,7 +501,7 @@ export const StakingModal = ({
                 </InputBox>
               </Wrapper>
 
-              <Wrapper>
+              {/* <Wrapper>
                 <StakingInfo>
                   <Text size="s2" weight="600">
                     Locked Amount Limitation
@@ -390,7 +510,7 @@ export const StakingModal = ({
                   <Text size="s2">Available Quota : 50 XRP</Text>
                   <Text size="s2">Available Personal Quota : 50 XRP</Text>
                 </StakingInfo>
-              </Wrapper>
+              </Wrapper> */}
             </FormCon>
             <Summary>
               <Text as="h2" color="#170728" size="h2">
@@ -414,21 +534,7 @@ export const StakingModal = ({
                   <Divide>
                     <LineDivide />
                   </Divide>
-                  <StateInfo>
-                    <Flex justify="space-between" align="center">
-                      <Flex align="center">
-                        <div className="dot">
-                          <Dot />
-                        </div>
-                        <Spacer width={10} />
-                        <Text size="s2">Profit Date</Text>
-                      </Flex>
-                      <Text size="s2">2023-01-19 18:25</Text>
-                    </Flex>
-                  </StateInfo>
-                  <Divide>
-                    <LineDivide />
-                  </Divide>
+
                   <StateInfo>
                     <Flex justify="space-between" align="center">
                       <Flex align="center">
@@ -442,10 +548,10 @@ export const StakingModal = ({
                     </Flex>
                   </StateInfo>
                   <Spacer height={30} />
-                  <Apr>
+                  {/* <Apr>
                     <Text size="s2">Est. APR</Text>
                     <Text size="s2">30%</Text>
-                  </Apr>
+                  </Apr> */}
                 </Wrapper>
                 <Wrapper>
                   <InfoBox
@@ -463,7 +569,14 @@ export const StakingModal = ({
                   <Spacer height={15} />
 
                   <div>
-                    <ActionBtn className="full">Confirm</ActionBtn>
+                    {loading && "loading..."}
+                    <ActionBtn
+                      disabled={loading || approving || amount == 0}
+                      className="full"
+                      onClick={() => handleStake()}
+                    >
+                      {allowance >= amount ? "Confirm" : "Approve"}
+                    </ActionBtn>
                   </div>
                 </Wrapper>
               </SummaryCon>
@@ -479,10 +592,108 @@ export const StakingModal = ({
 export const StakedModal = ({
   handleClose,
   show,
+  data,
 }: {
   handleClose: () => void;
   show: boolean;
+  data: any;
 }) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const chainId: number = useChainId();
+  // const { address } = useAccount();
+
+  // const provider = useEthersProvider();
+  const signer = useEthersSigner();
+
+  // const unstake = async () => {
+  //   setLoading(true);
+  //   const contract: any = getStakingContract(chainId as any, signer);
+  //   try {
+  //     const tx = await contract.withdraw();
+  //     setLoading(false);
+  //     const receipt = await tx.wait();
+  //     //  renderSuccess("Approved");
+  //     console.log(receipt);
+  //   } catch (err: any) {
+  //     toast.error(err.message || err.reason || "Opps, something went wrong!", {
+  //       position: toast.POSITION.TOP_RIGHT,
+  //     });
+  //     setLoading(false);
+  //   }
+  // };
+
+  const requestWithdraw = async () => {
+    setLoading(true);
+    const contract: any = getStakingContract(chainId as any, signer);
+    try {
+      const tx = await contract.requestWithdraw();
+      setLoading(false);
+      const receipt = await tx.wait();
+      console.log(receipt);
+      //  renderSuccess("Approved");
+    } catch (err: any) {
+      const match = revertMatch(err);
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setLoading(false);
+    }
+  };
+
+  const withdraw = async () => {
+    setLoading(true);
+    const contract: any = getStakingContract(chainId as any, signer);
+    try {
+      const tx = await contract.withdraw();
+      setLoading(false);
+      const receipt = await tx.wait();
+      console.log(receipt);
+      //  renderSuccess("Approved");
+    } catch (err: any) {
+      const match = revertMatch(err);
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setLoading(false);
+    }
+  };
+
+  const claimReward = async () => {
+    setLoading(true);
+    const contract: any = getStakingContract(chainId as any, signer);
+    try {
+      const tx = await contract.claimReward();
+      setLoading(false);
+      const receipt = await tx.wait();
+      console.log(receipt);
+      //  renderSuccess("Approved");
+    } catch (err: any) {
+      const match = revertMatch(err);
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal {...{ handleClose, show }}>
       <SInner
@@ -542,34 +753,23 @@ export const StakedModal = ({
             </Text>
 
             <SItem>
-              <Text>Est.APR</Text>
-              <Text>30%</Text>
-            </SItem>
-
-            <SItem>
               <Text>Interest Period</Text>
-              <Text>2 Months</Text>
+              <Text>{getIMonth(data.duration.toString())}</Text>
             </SItem>
 
             <SItem>
               <Text>Status</Text>
-              <Text>in progress</Text>
+              <Text>
+                {getStatus(data.finishAt)
+                  ? " in progress"
+                  : " Staking period is over"}
+              </Text>
             </SItem>
 
-            <SItem>
-              <Text>Locked Period</Text>
-              <Text>60 Days</Text>
-            </SItem>
-
-            <SItem>
+            {/* <SItem>
               <Text>Stake Date</Text>
               <Text>2023-01-19 19:25</Text>
-            </SItem>
-
-            <SItem>
-              <Text>Value Date</Text>
-              <Text>2023-01-19 19:25</Text>
-            </SItem>
+            </SItem> */}
 
             <SDetials>
               <Text weight="700" color="#fff">
@@ -581,11 +781,15 @@ export const StakedModal = ({
               </SItem>
               <SItem className="sd">
                 <Text>Total Amount</Text>
-                <Text weight="700">$3,000</Text>
+                <Text weight="700">
+                  {fromBigNumber(data.totalForStake, 18).toLocaleString()}
+                  &nbsp;
+                  {stakingToken[chainId].symbol}
+                </Text>
               </SItem>
               <SItem className="sd">
                 <Text>Redemption Period</Text>
-                <Text weight="700">30 Days</Text>
+                <Text weight="700">{getIMonth(data.duration.toString())}</Text>
               </SItem>
             </SDetials>
 
@@ -595,7 +799,16 @@ export const StakedModal = ({
             </Issue>
             <Spacer height={26} />
 
-            <ActionBtn>OPT OUT</ActionBtn>
+            {getStatus(data.finishAt) ? (
+              <Flex gap={20}>
+                <ActionBtn onClick={requestWithdraw}>Send Request</ActionBtn>
+                <ActionBtn onClick={withdraw}>OPT OUT</ActionBtn>
+              </Flex>
+            ) : (
+              <ActionBtn disabled={loading} onClick={claimReward}>
+                Claim
+              </ActionBtn>
+            )}
           </StakedCon>
         </Contain>
         <Spacer height={35} />

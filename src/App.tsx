@@ -8,6 +8,8 @@ import {
   EthereumClient,
 } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/react";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 const projectId = WEB3_MODEL_PROJECT_ID;
 
@@ -21,8 +23,6 @@ function App() {
     publicClient,
   });
 
-  console.log(projectId, "Project Id");
-
   const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
   return (
@@ -32,6 +32,8 @@ function App() {
 
       <div style={{ position: "relative", zIndex: 999999 }}>
         <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+
+        <ToastContainer />
       </div>
     </WagmiConfig>
   );

@@ -10,6 +10,11 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   padding: 0px 30px 0px 50px;
+
+  @media (max-width: 640px) {
+    height: 180px;
+    padding: 0px 30px 0px 20px;
+  }
 `;
 const Wrapper = styled.div`
   width: 100%;
@@ -21,6 +26,26 @@ const Wrapper = styled.div`
     font-weight: 500;
     line-height: normal;
   }
+
+  .word {
+    display: "flex";
+  }
+
+  @media (max-width: 640px) {
+    h2 {
+      font-size: 24.359px;
+      text-align: start;
+    }
+
+    svg {
+      height: 60px;
+      width: 60px;
+    }
+
+    .word {
+      display: block;
+    }
+  }
 `;
 
 const Inner = styled.div`
@@ -28,6 +53,11 @@ const Inner = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  @media (max-width: 640px) {
+    .ricon {
+      display: none;
+    }
+  }
 `;
 
 const StackingAds = () => {
@@ -120,10 +150,11 @@ const StackingAds = () => {
           <Text
             color="#17072880"
             as={motion.div}
-            style={{ overflow: "hidden", display: "flex" }}
+            style={{ overflow: "hidden" }}
             variants={container}
             initial="hidden"
             animate="visible"
+            className="word"
           >
             {words.map((word, index) => (
               <motion.span
@@ -136,7 +167,9 @@ const StackingAds = () => {
             ))}
           </Text>
         </Wrapper>
-        <RIcon />
+        <div className="ricon">
+          <RIcon />
+        </div>
       </Inner>
     </Container>
   );

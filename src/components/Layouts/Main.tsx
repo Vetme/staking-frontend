@@ -37,7 +37,7 @@ const MainLayout = () => {
       <BodyWrapper>
         <Outlet />
       </BodyWrapper>
-      <Footer />
+      {/* <Footer /> */}
 
       {/* <Footer /> */}
     </div>

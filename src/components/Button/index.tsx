@@ -1,10 +1,5 @@
 import styled from "styled-components";
-import {
-  PRIMARY_COLOR,
-  PRIMARY_HOVER,
-  PRIMARY_DISABLED,
-  SECONDARY_COLOR,
-} from "@/themes";
+import { PRIMARY_COLOR, SECONDARY_COLOR } from "@/themes";
 
 export const Button = styled.button.attrs((props) => ({
   className: props.className,

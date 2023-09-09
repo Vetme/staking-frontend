@@ -15,6 +15,12 @@ const Container = styled.div`
   background-size: 100%;
   background-position: top center;
   min-height: 236px;
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    background-image: none;
+    min-height: auto;
+  }
 `;
 
 const InfoBox = ({ text, direction }: IInfo) => {

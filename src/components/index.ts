@@ -56,7 +56,7 @@ export const Text = styled.span<{
   color: ${({ color }) => color};
 
   letter-spacing: 0.02em;
-  text-transform: ${({ uppercase }) => uppercase && "Uppercase"};
+  text-transform: ${({ uppercase }) => uppercase && "uppercase"};
 
   &.fancy {
     background: linear-gradient(302.59deg, #a93ceb -21.04%, #6a64ff 124.16%);
@@ -205,10 +205,12 @@ export const InputBox = styled.div<{ required?: boolean }>`
     @media (max-width: 640px) {
       left: 28px;
       font-size: 12px;
+
     }
   }
 
   @media (max-width: 640px) {
+      background-image: url(/images/bg/input.png);
     /* height: 73px; */
     span.error {
       left: 20px;
@@ -266,6 +268,12 @@ export const InputInner = styled.div`
     left: 32px;
     position: absolute;
     width: calc(100% - 40px);
+  }
+  @media (max-width: 640px) {
+
+    .max{
+    transform: translateX(-28px);
+  }
   }
 `;
 
@@ -405,5 +413,12 @@ export const ActionBtn = styled.button`
     svg {
       margin-top: 14px;
     }
+  }
+
+  &:disabled{
+    background:red;
+    background: #e1e1e1;
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
