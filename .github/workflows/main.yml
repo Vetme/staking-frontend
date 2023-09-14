@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Here is the deployment action v1
+      # Here is the deployment action
       - name: Upload from public_html via FTP
         uses: airvzxf/ftp-deployment-action@latest
         with:
@@ -17,3 +17,4 @@ jobs:
           local_dir: "./dist"
           remote_dir: "/"
           delete: "false"
+      # Here

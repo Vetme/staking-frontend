@@ -17,6 +17,7 @@ import { useWeb3Modal } from "@web3modal/react";
 import { useState } from "react";
 import styled from "styled-components";
 import { useAccount, useChainId } from "wagmi";
+import Countdown from "react-countdown";
 
 const StakeCon = styled.div`
   width: 237.813px;
@@ -74,6 +75,42 @@ const Inner = styled.div`
   }
 `;
 
+const IMessage = styled.div`
+  background: #fff9e7;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  width: fit-content;
+`;
+
+const Count = styled.div`
+  font-size: 82px;
+  color: #170728;
+
+  height: 100svh;
+  background: #80ad8b3b;
+  inset: 0;
+  width: 100%;
+  position: fixed;
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+
+  h4 {
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 48px;
+    > div {
+      margin-top: -50px;
+    }
+  }
+`;
+
 // import stakingAbi from "@/abi/staking.json";
 // import { contracts } from "@/lib/constants";
 
@@ -85,11 +122,13 @@ enum ModelPop {
 const Home = () => {
   const [show, setShow] = useState<ModelPop | undefined>(undefined);
   const [open, setOpen] = useState<boolean>(false);
+  const [staked, toggleStaked] = useState<boolean>(false);
+
   const { isConnected } = useAccount();
   const { open: openModal } = useWeb3Modal();
   const chainId: number = useChainId();
 
-  const { loading, data } = useContractFetch({ chainId });
+  const { loading, data } = useContractFetch({ chainId, staked });
 
   return (
     <div>
@@ -99,14 +138,6 @@ const Home = () => {
         </div>
         <Spacer height={50} />
         <div className="container">
-          {/* <ActionBtn onClick={() => setShow(ModelPop.Stake)}>
-            Open Stake
-          </ActionBtn>
-
-          <ActionBtn onClick={() => setShow(ModelPop.Staked)}>
-            Open Staked
-          </ActionBtn> */}
-
           {isConnected ? (
             <div>
               {loading ? (
@@ -138,7 +169,7 @@ const Home = () => {
                           <h2 className="light">
                             {fromBigNumber(
                               data.totalForStake,
-                              18
+                              stakingToken[chainId].decimal
                             ).toLocaleString()}
                             &nbsp;
                             {stakingToken[chainId].symbol}
@@ -149,28 +180,39 @@ const Home = () => {
                   </Flex>
 
                   <Spacer height={24} />
-                  {fromBigNumber(data.balanceOf, 18) > 0 && (
-                    <Button
-                      className="secondary "
-                      onClick={() => setShow(ModelPop.Staked)}
-                    >
-                      View Stake Details
-                    </Button>
-                  )}
+                  <Flex gap={20} wrap>
+                    {fromBigNumber(
+                      data.balanceOf,
+                      stakingToken[chainId].decimal
+                    ) > 0 && (
+                      <Button
+                        className="secondary "
+                        onClick={() => setShow(ModelPop.Staked)}
+                      >
+                        View Stake Details
+                      </Button>
+                    )}
 
-                  <Spacer height={24} />
-                  {getStatus(data.finishAt) ? (
-                    <Button
-                      className="primary "
-                      onClick={() => setShow(ModelPop.Staked)}
-                    >
-                      Stake
-                    </Button>
-                  ) : (
-                    <Text size="h4">
-                      Staking Period is over. kindly wait for our next round
-                    </Text>
-                  )}
+                    {getStatus(data.finishAt) && (
+                      <Button
+                        className="primary "
+                        onClick={() => setShow(ModelPop.Stake)}
+                      >
+                        Stake
+                      </Button>
+                    )}
+                  </Flex>
+
+                  <Spacer />
+
+                  <IMessage>
+                    {!getStatus(data.finishAt) && (
+                      <Text size="normal">
+                        The staking period has ended. Please await our next
+                        round.
+                      </Text>
+                    )}
+                  </IMessage>
                 </div>
               )}
             </div>
@@ -183,26 +225,34 @@ const Home = () => {
           )}
         </div>
       </div>
-
       <StakingModal
         show={show == ModelPop.Stake ? true : false}
         handleClose={() => setShow(undefined)}
+        revalidate={() => toggleStaked((prev) => !prev)}
+        data={data}
       />
-
       <StakedModal
         show={show == ModelPop.Staked ? true : false}
         handleClose={() => setShow(undefined)}
         data={data}
+        revalidate={() => toggleStaked((prev) => !prev)}
       />
-
       {/* <button onClick={() => setOpen(true)}>Open</button> */}
-
       <Message
         show={open}
         handleClose={() => setOpen(false)}
         msg="Transaction Successful"
         headerText="Success"
       />
+
+      <Count>
+        <div>
+          <Text as="h4" size="normal">
+            Staking commences after countdown ends
+          </Text>
+          <Countdown date={Date.parse("2023-09-14T23:00:00")} />
+        </div>
+      </Count>
     </div>
   );
 };

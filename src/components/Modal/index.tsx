@@ -5,13 +5,25 @@ import InfoBox from "../InfoBox";
 import { ArrowRight, Dot, LineDivide } from "../Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { getERC20Contract, getStakingContract } from "@/helpers/contract";
-import { contracts, stakingToken } from "@/lib/constants";
+import { BaseURL, contracts, rewardToken, stakingToken } from "@/lib/constants";
 import { useAccount, useChainId } from "wagmi";
 import { useEthersProvider } from "@/hooks/useProvider";
 import { useEthersSigner } from "@/hooks/useSigner";
 import { parseUnits } from "ethers";
-import { fromBigNumber, getIMonth, getStatus, revertMatch } from "@/helpers";
+import {
+  canWithdraw,
+  fromBigNumber,
+  getDateFromSeconds,
+  getNow,
+  getRemaining,
+  getReward,
+  getStakePercent,
+  getStatus,
+  isPending,
+  revertMatch,
+} from "@/helpers";
 import { toast } from "react-toastify";
+// import { Button } from "../Button";
 
 const overlay = {
   hidden: { opacity: 0 },
@@ -294,15 +306,20 @@ export default Modal;
 export const StakingModal = ({
   handleClose,
   show,
+  revalidate,
+  data,
 }: {
   handleClose: () => void;
   show: boolean;
+  revalidate: () => void;
+  data: any;
 }) => {
   const [allowance, setAllowance] = useState<number>(0);
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   // const [staking, setStaking] = useState<boolean>(false);
   const [approving, setApproving] = useState<boolean>(false);
+  const [balance, setBalance] = useState<number>(0);
   const chainId: number = useChainId();
   const { address } = useAccount();
 
@@ -311,7 +328,7 @@ export const StakingModal = ({
 
   const getAllowance = async () => {
     const contract: any = getERC20Contract(
-      contracts.token[chainId],
+      contracts.staking_token[chainId],
       chainId as any,
       provider
     );
@@ -326,13 +343,14 @@ export const StakingModal = ({
       allowance.toString(),
       stakingToken[chainId].decimal
     );
+
     setAllowance(value);
   };
 
   const approve = async () => {
     setApproving(true);
     const contract: any = getERC20Contract(
-      contracts.token[chainId],
+      contracts.staking_token[chainId],
       chainId as any,
       signer
     );
@@ -345,16 +363,19 @@ export const StakingModal = ({
 
       const tx = await contract.approve(contracts.staking[chainId], value);
 
-      setApproving(false);
       const receipt = await tx.wait();
       console.log(receipt);
+      setApproving(false);
       getAllowance();
     } catch (err: any) {
+      setApproving(false);
       const match = revertMatch(err);
       if (match) {
         toast.error(match[0] || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
       } else {
         toast.error(err.message || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -366,6 +387,7 @@ export const StakingModal = ({
 
   const stake = async () => {
     setLoading(true);
+
     const contract: any = getStakingContract(chainId as any, signer);
 
     try {
@@ -375,19 +397,41 @@ export const StakingModal = ({
       );
 
       const tx = await contract.stake(value);
-      setLoading(false);
       const receipt = await tx.wait();
       console.log(receipt);
+
+      const requestData = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          totalForStake: fromBigNumber(
+            data.totalForStake,
+            stakingToken[chainId].decimal
+          ),
+          amount: +amount,
+          balance: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
+        }), // JSON request body
+      };
+
+      await fetch(`${BaseURL}/staking`, requestData);
+      setLoading(false);
       getAllowance();
+      setAmount(0);
+      revalidate();
       toast.success("Stake successful, Check back to claim your reward later", {
         position: toast.POSITION.TOP_RIGHT,
       });
     } catch (err: any) {
+      console.log(err);
       const match = revertMatch(err);
       if (match) {
         toast.error(match[0] || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
       } else {
         toast.error(err.message || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -402,14 +446,26 @@ export const StakingModal = ({
     if (allowance >= amount) {
       await stake();
     } else {
-      alert();
       await approve();
     }
   };
 
   useEffect(() => {
     getAllowance();
+    getTokenBalance();
   }, []);
+
+  const getTokenBalance = async () => {
+    const contract: any = getERC20Contract(
+      contracts.staking_token[chainId],
+      chainId as any,
+      provider
+    );
+
+    if (!address) return;
+    const balance = await contract.balanceOf(address);
+    setBalance(fromBigNumber(balance, stakingToken[chainId].decimal));
+  };
 
   return (
     <Modal {...{ handleClose, show }}>
@@ -486,8 +542,9 @@ export const StakingModal = ({
                       placeholder="ENTER AMOUNT"
                     />
                     <Flex className="max" justify="flex-end" gap={10}>
-                      <Text size="s2">XPT</Text>|
+                      <Text size="s2">VetMe</Text>|
                       <Text
+                        onClick={() => setAmount(balance)}
                         role="button"
                         style={{ cursor: "pointer" }}
                         weight="700"
@@ -528,7 +585,7 @@ export const StakingModal = ({
                         <Spacer width={10} />
                         <Text size="s2">Stake Date</Text>
                       </Flex>
-                      <Text size="s2">2023-01-18 18:25</Text>
+                      <Text size="s2">{getNow()}</Text>
                     </Flex>
                   </StateInfo>
                   <Divide>
@@ -542,9 +599,11 @@ export const StakingModal = ({
                           <Dot />
                         </div>
                         <Spacer width={10} />
-                        <Text size="s2">Interest Distribution Date</Text>
+                        <Text size="s2">Interest Claiming Date</Text>
                       </Flex>
-                      <Text size="s2">2023-01-19 18:25</Text>
+                      <Text size="s2">
+                        {getDateFromSeconds(data.finishAt.toString())}
+                      </Text>
                     </Flex>
                   </StateInfo>
                   <Spacer height={30} />
@@ -559,13 +618,13 @@ export const StakingModal = ({
                     direction="row"
                   />
                   <Spacer height={37} />
-                  <Flex gap={14}>
+                  {/* <Flex gap={14}>
                     <input type="checkbox" />
                     <Text size="s2">
                       I have read and agreed to Vetme Simple Earn and Service
                       Agreement.
                     </Text>
-                  </Flex>
+                  </Flex> */}
                   <Spacer height={15} />
 
                   <div>
@@ -593,10 +652,12 @@ export const StakedModal = ({
   handleClose,
   show,
   data,
+  revalidate,
 }: {
   handleClose: () => void;
   show: boolean;
   data: any;
+  revalidate: () => void;
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const chainId: number = useChainId();
@@ -627,8 +688,46 @@ export const StakedModal = ({
     const contract: any = getStakingContract(chainId as any, signer);
     try {
       const tx = await contract.requestWithdraw();
-      setLoading(false);
       const receipt = await tx.wait();
+      setLoading(false);
+      revalidate();
+      toast.success(
+        "Request Sent, You will be able to withdraw you funds in 24h",
+        {
+          position: toast.POSITION.TOP_RIGHT,
+        }
+      );
+      console.log(receipt);
+      //  renderSuccess("Approved");
+    } catch (err: any) {
+      const match = revertMatch(err);
+
+      if (match) {
+        toast.error(match[0] || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
+      } else {
+        toast.error(err.message || "Opps, something went wrong!", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      setLoading(false);
+    }
+  };
+
+  const cancelRequest = async () => {
+    setLoading(true);
+    const contract: any = getStakingContract(chainId as any, signer);
+    try {
+      const tx = await contract.cancelWithdrawRequest();
+      const receipt = await tx.wait();
+      setLoading(false);
+      revalidate();
+      toast.success("Request Cancel", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
       console.log(receipt);
       //  renderSuccess("Approved");
     } catch (err: any) {
@@ -637,6 +736,8 @@ export const StakedModal = ({
         toast.error(match[0] || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
       } else {
         toast.error(err.message || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -661,6 +762,8 @@ export const StakedModal = ({
         toast.error(match[0] || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
       } else {
         toast.error(err.message || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -685,6 +788,8 @@ export const StakedModal = ({
         toast.error(match[0] || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
         });
+      } else if (err.includes("user rejected action")) {
+        console.log("");
       } else {
         toast.error(err.message || "Opps, something went wrong!", {
           position: toast.POSITION.TOP_RIGHT,
@@ -753,8 +858,32 @@ export const StakedModal = ({
             </Text>
 
             <SItem>
-              <Text>Interest Period</Text>
-              <Text>{getIMonth(data.duration.toString())}</Text>
+              <Text>Staking Period</Text>
+              <Text>{getDateFromSeconds(data.finishAt.toString())}</Text>
+            </SItem>
+
+            <SItem>
+              <Text>Total Staking Pool</Text>
+              <Text>
+                {fromBigNumber(
+                  data.totalForStake,
+                  stakingToken[chainId].decimal
+                ).toLocaleString()}
+                &nbsp;
+                {stakingToken[chainId].symbol}
+              </Text>
+            </SItem>
+
+            <SItem>
+              <Text>Current Revenue Share</Text>
+              <Text>
+                {fromBigNumber(
+                  data.totalReward,
+                  rewardToken[chainId].decimal
+                ).toLocaleString()}
+                &nbsp;
+                {rewardToken[chainId].symbol}
+              </Text>
             </SItem>
 
             <SItem>
@@ -766,11 +895,6 @@ export const StakedModal = ({
               </Text>
             </SItem>
 
-            {/* <SItem>
-              <Text>Stake Date</Text>
-              <Text>2023-01-19 19:25</Text>
-            </SItem> */}
-
             <SDetials>
               <Text weight="700" color="#fff">
                 Stake Details
@@ -780,16 +904,37 @@ export const StakedModal = ({
                 <Text weight="700">VetMe</Text>
               </SItem>
               <SItem className="sd">
-                <Text>Total Amount</Text>
+                <Text>Total Amount Staked</Text>
                 <Text weight="700">
-                  {fromBigNumber(data.totalForStake, 18).toLocaleString()}
+                  {fromBigNumber(
+                    data.balanceOf,
+                    stakingToken[chainId].decimal
+                  ).toLocaleString()}
                   &nbsp;
                   {stakingToken[chainId].symbol}
                 </Text>
               </SItem>
               <SItem className="sd">
+                <Text>User contribution (%)</Text>
+                <Text weight="700">
+                  {getStakePercent(
+                    fromBigNumber(
+                      data.balanceOf,
+                      stakingToken[chainId].decimal
+                    ),
+                    fromBigNumber(
+                      data.totalForStake,
+                      stakingToken[chainId].decimal
+                    )
+                  )}
+                  %
+                </Text>
+              </SItem>
+              <SItem className="sd">
                 <Text>Redemption Period</Text>
-                <Text weight="700">{getIMonth(data.duration.toString())}</Text>
+                <Text weight="700">
+                  {getDateFromSeconds(data.finishAt.toString())}
+                </Text>
               </SItem>
             </SDetials>
 
@@ -801,13 +946,47 @@ export const StakedModal = ({
 
             {getStatus(data.finishAt) ? (
               <Flex gap={20}>
-                <ActionBtn onClick={requestWithdraw}>Send Request</ActionBtn>
-                <ActionBtn onClick={withdraw}>OPT OUT</ActionBtn>
+                {isPending(data.w_pending) ? (
+                  <div>
+                    {getRemaining(data.w_pending) > 0 && (
+                      <Text>
+                        {getRemaining(data.w_pending)} day(s) remaining
+                      </Text>
+                    )}
+                    <Spacer />
+                    <Flex gap={20}>
+                      <ActionBtn disabled={loading} onClick={cancelRequest}>
+                        Cancel Pending Request
+                      </ActionBtn>
+                      {canWithdraw(data.w_pending) && (
+                        <ActionBtn onClick={withdraw}>OPT OUT</ActionBtn>
+                      )}
+                    </Flex>
+                  </div>
+                ) : (
+                  <ActionBtn disabled={loading} onClick={requestWithdraw}>
+                    Send Withdraw Request
+                  </ActionBtn>
+                )}
               </Flex>
             ) : (
-              <ActionBtn disabled={loading} onClick={claimReward}>
-                Claim
-              </ActionBtn>
+              !data.rewarded && (
+                <ActionBtn disabled={loading} onClick={claimReward}>
+                  Claim{" "}
+                  {getReward(
+                    fromBigNumber(
+                      data.totalForStake,
+                      stakingToken[chainId].decimal
+                    ),
+                    fromBigNumber(
+                      data.totalReward,
+                      stakingToken[chainId].decimal
+                    ),
+                    fromBigNumber(data.balanceOf, rewardToken[chainId].decimal)
+                  )}{" "}
+                  {rewardToken[chainId].symbol}
+                </ActionBtn>
+              )
             )}
           </StakedCon>
         </Contain>

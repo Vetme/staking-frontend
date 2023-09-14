@@ -45,6 +45,8 @@ export const getStakingContract = (
     ) as unknown;
 };
 
+
+
 export const getERC20Contract = (
     contract_address: string,
     chain: Blockchain,

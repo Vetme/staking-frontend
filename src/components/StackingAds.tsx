@@ -144,7 +144,7 @@ const StackingAds = () => {
         <Wrapper>
           <Flex gap={20} align="center">
             <VetMeIcon />
-            <Text as="h2">vetMe Staking</Text>
+            <Text as="h2">VetMe Staking</Text>
           </Flex>
           <Spacer height={13} />
           <Text
