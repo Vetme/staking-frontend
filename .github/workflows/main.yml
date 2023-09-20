@@ -1,4 +1,4 @@
-name: CI -> Deploy to My Staking
+name: CI -> Deploy to Staking
 on:
   push:
     branches: master
