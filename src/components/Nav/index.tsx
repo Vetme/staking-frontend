@@ -77,7 +77,7 @@ const Navigation = () => {
                 <Item to="/how-to">
                   <span>How to</span>
                 </Item>
-                <Item to="faq">
+                <Item to="/faq">
                   <span>FAQ</span>
                 </Item>
               </NavItems>
@@ -141,7 +141,7 @@ const Navigation = () => {
               </IconM>
               <MMenuInner>
                 <MMenuItem to="/how-to">How to</MMenuItem>
-                <MMenuItem to="/">Faq</MMenuItem>
+                <MMenuItem to="/faq">Faq</MMenuItem>
 
                 <Spacer height={32} />
                 <Center>

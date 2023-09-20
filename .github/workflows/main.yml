@@ -1,4 +1,4 @@
-name: CI -> Deploy to My website
+name: CI -> Deploy to My Staking
 on:
   push:
     branches: master
@@ -11,9 +11,9 @@ jobs:
       - name: Upload from public_html via FTP
         uses: airvzxf/ftp-deployment-action@latest
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          user: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.FTP_STAKING_SERVER }}
+          user: ${{ secrets.FTP_STAKING_USERNAME }}
+          password: ${{ secrets.FTP_STAKING_PASSWORD }}
           local_dir: "./dist"
           remote_dir: "/"
           delete: "false"

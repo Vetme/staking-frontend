@@ -112,3 +112,7 @@ export const getReward = (totalForStake: any, totalReward: any, balance: any) =>
   const reward = ((balance / totalForStake) * 100) * totalReward / 100
   return reward.toFixed(2);
 }
+
+export const computeUsdPrice = (usd: any, amount: number) => {
+  return (usd * amount).toFixed(2);
+};

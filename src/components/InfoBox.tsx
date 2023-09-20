@@ -4,48 +4,63 @@ import { Flex, Spacer, Text } from ".";
 import { InfoIcon } from "./Icons";
 
 interface IInfo {
-  text: string;
   direction: "column" | "row";
 }
 
 const Container = styled.div`
   padding: 42px 24px 24px 42px;
-  background-image: url(/images/bg/info.svg);
   background-repeat: no-repeat;
   background-size: 100%;
   background-position: top center;
   min-height: 236px;
+  border: 1px solid #fff;
 
   @media (max-width: 640px) {
     padding: 10px;
-    background-image: none;
+    /* background-image: none; */
     min-height: auto;
   }
 `;
 
-const InfoBox = ({ text, direction }: IInfo) => {
+const InfoBox = ({ direction }: IInfo) => {
   return (
     <>
-      {direction == "column" && <BuildColumn text={text} />}
-      {direction == "row" && <BuildRow text={text} />}
+      {direction == "column" && <BuildColumn />}
+      {direction == "row" && <BuildRow />}
     </>
   );
 };
 
-const BuildColumn = ({ text }: { text: string }) => (
+const BuildColumn = () => (
   <Container>
     <InfoIcon />
     <Spacer height={14} />
-    <Text size="s2">{text}</Text>
+    <Text as="div" size="s2">
+      Your staking rewards are sourced from the following services on our
+      platform:
+      <div>- Vetting Services</div>
+      <div>- Escrow Services</div>
+      <div>- OTC DEX (Decentralized Exchange)</div>
+      <div>- KYC (Know Your Customer)</div>
+      <div>- P2P Trading Platform</div>
+    </Text>
   </Container>
 );
-const BuildRow = ({ text }: { text: string }) => (
+const BuildRow = () => (
   <Flex gap={14}>
     <div style={{ flexShrink: 0 }}>
       <InfoIcon />
     </div>
     <Spacer height={14} />
-    <Text size="s2">{text}</Text>
+    <Text as="div" size="s2">
+      Your staking rewards are sourced from the following services on our
+      platform:
+      <div>- Vetting Services</div>
+      <div>- Escrow Services</div>
+      <div>- OTC DEX (Decentralized Exchange)</div>
+      <div>- KYC (Know Your Customer)</div>
+      <div>- P2P Trading Platform</div>
+    </Text>
   </Flex>
 );
 

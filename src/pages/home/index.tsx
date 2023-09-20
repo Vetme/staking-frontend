@@ -9,7 +9,7 @@ import {
 import { StakedModal, StakingModal } from "@/components/Modal";
 import Message from "@/components/Modal/Message";
 import StackingAds from "@/components/StackingAds";
-import { fromBigNumber, getStatus } from "@/helpers";
+import { computeUsdPrice, fromBigNumber, getStatus, truncate } from "@/helpers";
 import { useContractFetch } from "@/hooks/useContractFetch";
 import { stakingToken } from "@/lib/constants";
 import { useWeb3Modal } from "@web3modal/react";
@@ -81,35 +81,52 @@ const IMessage = styled.div`
   border-radius: 10px;
   font-size: 14px;
   width: fit-content;
-`;
 
-const Count = styled.div`
-  font-size: 82px;
-  color: #170728;
-
-  height: 100svh;
-  background: #80ad8b3b;
-  inset: 0;
-  width: 100%;
-  position: fixed;
-  z-index: 9999999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(5px);
-
-  h4 {
-    margin-bottom: 20px;
-    font-weight: 700;
+  &.danger {
+    background: #ffe7e7;
   }
 
-  @media (max-width: 640px) {
-    font-size: 48px;
-    > div {
-      margin-top: -50px;
-    }
+  &.success {
+    background: #e7fff2;
   }
 `;
+
+const UsdVal = styled.span`
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: #acacac;
+  bottom: -23px;
+`;
+
+const Count = styled.div``;
+
+// const Count = styled.div`
+//   font-size: 82px;
+//   color: #170728;
+
+//   height: 100svh;
+//   background: #80ad8b3b;
+//   inset: 0;
+//   width: 100%;
+//   position: fixed;
+//   z-index: 9999999;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   backdrop-filter: blur(5px);
+
+//   h4 {
+//     margin-bottom: 20px;
+//     font-weight: 700;
+//   }
+
+//   @media (max-width: 640px) {
+//     font-size: 48px;
+//     > div {
+//       margin-top: -50px;
+//     }
+//   }
+// `;
 
 // import stakingAbi from "@/abi/staking.json";
 // import { contracts } from "@/lib/constants";
@@ -123,6 +140,7 @@ const Home = () => {
   const [show, setShow] = useState<ModelPop | undefined>(undefined);
   const [open, setOpen] = useState<boolean>(false);
   const [staked, toggleStaked] = useState<boolean>(false);
+  const [ended] = useState<boolean>(true);
 
   const { isConnected } = useAccount();
   const { open: openModal } = useWeb3Modal();
@@ -138,6 +156,19 @@ const Home = () => {
         </div>
         <Spacer height={50} />
         <div className="container">
+          <Count>
+            <IMessage className="success">
+              <Text as="h4" size="normal">
+                Reward starts in...
+              </Text>
+              <Countdown
+                date={Date.parse(
+                  "Monday, October 16, 2023 00:00:00 PM GMT+01:00"
+                )}
+              />
+            </IMessage>
+          </Count>
+          <Spacer height={50} />
           {isConnected ? (
             <div>
               {loading ? (
@@ -151,11 +182,26 @@ const Home = () => {
                       <Inner className="inner">
                         <Flex align="center" justify="space-between">
                           <EarningIcon />
-                          <h2>
-                            {fromBigNumber(data.balanceOf, 18).toLocaleString()}
-                            &nbsp;
-                            {stakingToken[chainId].symbol}
-                          </h2>
+                          <div>
+                            <h2>
+                              {fromBigNumber(
+                                data.balanceOf,
+                                stakingToken[chainId].decimal
+                              ).toLocaleString()}
+                              &nbsp;
+                              {stakingToken[chainId].symbol}
+                            </h2>
+                            <UsdVal>
+                              ~$
+                              {computeUsdPrice(
+                                data.usd,
+                                fromBigNumber(
+                                  data.balanceOf,
+                                  stakingToken[chainId].decimal
+                                )
+                              ).toLocaleString()}
+                            </UsdVal>
+                          </div>
                         </Flex>
                       </Inner>
                     </StakeCon>
@@ -167,13 +213,50 @@ const Home = () => {
                         <Flex align="center" justify="space-between">
                           <PoolIcon />
                           <h2 className="light">
-                            {fromBigNumber(
-                              data.totalForStake,
-                              stakingToken[chainId].decimal
-                            ).toLocaleString()}
+                            {truncate(
+                              fromBigNumber(
+                                data.totalForStake,
+                                stakingToken[chainId].decimal
+                              ).toLocaleString(),
+                              9
+                            )}
                             &nbsp;
                             {stakingToken[chainId].symbol}
                           </h2>
+                        </Flex>
+                      </Inner>
+                    </StakeCon>
+
+                    <StakeCon className="light">
+                      <Header>Total Staked</Header>
+                      <PoorShape />
+                      <Inner className="inner">
+                        <Flex align="center" justify="space-between">
+                          <PoolIcon />
+                          <div>
+                            <h2 className="light">
+                              {truncate(
+                                fromBigNumber(
+                                  data.totalSupply,
+                                  stakingToken[chainId].decimal
+                                ).toLocaleString(),
+                                9
+                              )}
+                              &nbsp;
+                              {stakingToken[chainId].symbol}
+                            </h2>
+
+                            <UsdVal>
+                              ~$
+                              {computeUsdPrice(
+                                data.usd,
+                                fromBigNumber(
+                                  data.totalSupply,
+                                  stakingToken[chainId].decimal
+                                )
+                              ).toLocaleString()}
+                            </UsdVal>
+                          </div>
                         </Flex>
                       </Inner>
                     </StakeCon>
@@ -193,7 +276,7 @@ const Home = () => {
                       </Button>
                     )}
 
-                    {getStatus(data.finishAt) && (
+                    {getStatus(data.finishAt) && !ended && (
                       <Button
                         className="primary "
                         onClick={() => setShow(ModelPop.Stake)}
@@ -206,7 +289,7 @@ const Home = () => {
                   <Spacer />
 
                   <IMessage>
-                    {!getStatus(data.finishAt) && (
+                    {(!getStatus(data.finishAt) || ended) && (
                       <Text size="normal">
                         The staking period has ended. Please await our next
                         round.
@@ -244,15 +327,6 @@ const Home = () => {
         msg="Transaction Successful"
         headerText="Success"
       />
-
-      <Count>
-        <div>
-          <Text as="h4" size="normal">
-            Staking commences after countdown ends
-          </Text>
-          <Countdown date={Date.parse("2023-09-14T23:00:00")} />
-        </div>
-      </Count>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { ActionBtn, Flex, Input, InputBox, InputInner, Spacer, Text } from "..";
 import { ReactNode, useState, useEffect } from "react";
-import InfoBox from "../InfoBox";
+// import InfoBox from "../InfoBox";
 import { ArrowRight, Dot, LineDivide } from "../Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { getERC20Contract, getStakingContract } from "@/helpers/contract";
@@ -12,6 +12,7 @@ import { useEthersSigner } from "@/hooks/useSigner";
 import { parseUnits } from "ethers";
 import {
   canWithdraw,
+  computeUsdPrice,
   fromBigNumber,
   getDateFromSeconds,
   getNow,
@@ -21,6 +22,7 @@ import {
   getStatus,
   isPending,
   revertMatch,
+  truncate,
 } from "@/helpers";
 import { toast } from "react-toastify";
 // import { Button } from "../Button";
@@ -276,6 +278,15 @@ const Issue = styled.div`
   cursor: pointer;
 `;
 
+const UsdVal = styled.div`
+  position: absolute;
+  top: 74px;
+  left: 23px;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: #acacac;
+`;
+
 interface IModal {
   handleClose: () => void;
   show: boolean;
@@ -386,6 +397,10 @@ export const StakingModal = ({
   };
 
   const stake = async () => {
+    toast.error("Staking period is over", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+    return false
     setLoading(true);
 
     const contract: any = getStakingContract(chainId as any, signer);
@@ -410,8 +425,11 @@ export const StakingModal = ({
             data.totalForStake,
             stakingToken[chainId].decimal
           ),
+          totalSupply:fromBigNumber(data.totalSupply, stakingToken[chainId].decimal),
+          usd: data.usd,
           amount: +amount,
           balance: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
+          account: truncate(address || "", 9),
         }), // JSON request body
       };
 
@@ -448,6 +466,22 @@ export const StakingModal = ({
     } else {
       await approve();
     }
+  };
+
+  const handleChange = (e: any) => {
+    let value = e.target.value;
+
+    value = value.replace(/,/g, ".");
+    const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`); // match escaped "." characters via in a non-capturing group
+    if (
+      value === "" ||
+      inputRegex.test(value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    ) {
+      setAmount(value);
+    } else {
+      return;
+    }
+
   };
 
   useEffect(() => {
@@ -523,10 +557,7 @@ export const StakingModal = ({
           <StakeCon>
             <FormCon>
               <Wrapper>
-                <InfoBox
-                  text="Lorem ipsum dolor sit amet consectetur. Est sit in egestas dolor non. Sed enim turpis nulla quisque. Semper vulputate sagittis diam imperdiet ti"
-                  direction="column"
-                />
+                {/* <InfoBox text="" direction="column" /> */}
 
                 <Spacer height={30} />
 
@@ -534,12 +565,18 @@ export const StakingModal = ({
                   <label htmlFor="">Lock Amount</label>
                   <InputInner>
                     <Input
-                      onChange={(e: any) => setAmount(e.target.value)}
+                      onChange={handleChange}
                       name="telegram"
                       value={amount || ""}
-                      type="text"
                       step={0.1}
                       placeholder="ENTER AMOUNT"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      minLength={1}
+                      maxLength={79}
+                      spellCheck="false"
                     />
                     <Flex className="max" justify="flex-end" gap={10}>
                       <Text size="s2">VetMe</Text>|
@@ -555,6 +592,10 @@ export const StakingModal = ({
                       </Text>
                     </Flex>
                   </InputInner>
+                  <UsdVal>
+                    ~$
+                    {computeUsdPrice(data.usd, amount).toLocaleString()}
+                  </UsdVal>
                 </InputBox>
               </Wrapper>
 
@@ -613,10 +654,10 @@ export const StakingModal = ({
                   </Apr> */}
                 </Wrapper>
                 <Wrapper>
-                  <InfoBox
+                  {/* <InfoBox
                     text="Lorem ipsum dolor sit amet consectetur. Est sit in egestas dolor non. Sed enim turpis nulla quisque. Semper vulputate sagittis diam imperdiet tincidunt cras."
                     direction="row"
-                  />
+                  /> */}
                   <Spacer height={37} />
                   {/* <Flex gap={14}>
                     <input type="checkbox" />
@@ -905,14 +946,21 @@ export const StakedModal = ({
               </SItem>
               <SItem className="sd">
                 <Text>Total Amount Staked</Text>
-                <Text weight="700">
-                  {fromBigNumber(
-                    data.balanceOf,
-                    stakingToken[chainId].decimal
+                <div>
+                  <Text weight="700">
+                    {fromBigNumber(
+                      data.balanceOf,
+                      stakingToken[chainId].decimal
+                    ).toLocaleString()}
+                    &nbsp;
+                    {stakingToken[chainId].symbol}
+                  </Text>
+                  ~$
+                  {computeUsdPrice(
+                    data.usd,
+                    fromBigNumber(data.balanceOf, stakingToken[chainId].decimal)
                   ).toLocaleString()}
-                  &nbsp;
-                  {stakingToken[chainId].symbol}
-                </Text>
+                </div>
               </SItem>
               <SItem className="sd">
                 <Text>User contribution (%)</Text>
