@@ -17,7 +17,7 @@ import {
   getDateFromSeconds,
   getNow,
   getRemaining,
-  getReward,
+  // getReward,
   getStakePercent,
   getStatus,
   isPending,
@@ -398,9 +398,9 @@ export const StakingModal = ({
 
   const stake = async () => {
     toast.error("Staking period is over", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-    return false
+      position: toast.POSITION.TOP_RIGHT,
+    });
+    return false;
     setLoading(true);
 
     const contract: any = getStakingContract(chainId as any, signer);
@@ -425,7 +425,10 @@ export const StakingModal = ({
             data.totalForStake,
             stakingToken[chainId].decimal
           ),
-          totalSupply:fromBigNumber(data.totalSupply, stakingToken[chainId].decimal),
+          totalSupply: fromBigNumber(
+            data.totalSupply,
+            stakingToken[chainId].decimal
+          ),
           usd: data.usd,
           amount: +amount,
           balance: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
@@ -481,7 +484,6 @@ export const StakingModal = ({
     } else {
       return;
     }
-
   };
 
   useEffect(() => {
@@ -702,7 +704,7 @@ export const StakedModal = ({
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const chainId: number = useChainId();
-  // const { address } = useAccount();
+  const { address } = useAccount();
 
   // const provider = useEthersProvider();
   const signer = useEthersSigner();
@@ -821,8 +823,17 @@ export const StakedModal = ({
       const tx = await contract.claimReward();
       setLoading(false);
       const receipt = await tx.wait();
+
       console.log(receipt);
-      //  renderSuccess("Approved");
+      await snapShotData({
+        account: address,
+        amount: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
+        transactionHash: receipt.transactionHash,
+      });
+
+      toast.success("Your address has been recorded for a reward snapshot.", {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     } catch (err: any) {
       const match = revertMatch(err);
       if (match) {
@@ -839,6 +850,29 @@ export const StakedModal = ({
       setLoading(false);
     }
   };
+
+  async function snapShotData(data: any) {
+    // Default options for the fetch request
+    const url =
+      "https://kyc-api.vetmeblock.com/api/v1/auth/snapshot" ||
+      "http://localhost:8080/api/v1/auth/snapshot";
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    };
+
+    try {
+      const response = await fetch(url, options);
+      const responseData = await response.json();
+
+      return responseData;
+    } catch (error) {
+      alert("Opps");
+    }
+  }
 
   return (
     <Modal {...{ handleClose, show }}>
@@ -1020,8 +1054,8 @@ export const StakedModal = ({
             ) : (
               !data.rewarded && (
                 <ActionBtn disabled={loading} onClick={claimReward}>
-                  Claim{" "}
-                  {getReward(
+                  Claim Token
+                  {/* {getReward(
                     fromBigNumber(
                       data.totalForStake,
                       stakingToken[chainId].decimal
@@ -1032,7 +1066,7 @@ export const StakedModal = ({
                     ),
                     fromBigNumber(data.balanceOf, rewardToken[chainId].decimal)
                   )}{" "}
-                  {rewardToken[chainId].symbol}
+                  {rewardToken[chainId].symbol} */}
                 </ActionBtn>
               )
             )}
