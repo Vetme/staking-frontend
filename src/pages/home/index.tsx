@@ -292,7 +292,7 @@ const Home = () => {
                     {(!getStatus(data.finishAt) || ended) && (
                       <Text size="normal">
                         The staking period has ended. Please await our next
-                        round.
+                        round..
                       </Text>
                     )}
                   </IMessage>
