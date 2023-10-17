@@ -798,6 +798,13 @@ export const StakedModal = ({
       setLoading(false);
       const receipt = await tx.wait();
       console.log(receipt);
+
+      await snapShotData({
+        account: address,
+        amount: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
+        transactionHash: receipt.transactionHash,
+      });
+
       //  renderSuccess("Approved");
     } catch (err: any) {
       const match = revertMatch(err);
@@ -819,12 +826,12 @@ export const StakedModal = ({
   const claimReward = async () => {
     setLoading(true);
     const contract: any = getStakingContract(chainId as any, signer);
+
     try {
       const tx = await contract.claimReward();
-      setLoading(false);
       const receipt = await tx.wait();
+      setLoading(false);
 
-      console.log(receipt);
       await snapShotData({
         account: address,
         amount: fromBigNumber(data.balanceOf, stakingToken[chainId].decimal),
@@ -1026,7 +1033,7 @@ export const StakedModal = ({
             </Issue>
             <Spacer height={26} />
 
-            {getStatus(data.finishAt) ? (
+            {!getStatus(data.finishAt) ? (
               <Flex gap={20}>
                 {isPending(data.w_pending) ? (
                   <div>
