@@ -1143,38 +1143,38 @@ export const RewardModal = ({
     }
   };
 
-  const notifyReward = async () => {
-    setLoading(true);
-    const contract: any = getRewardContract(chainId as any, signer);
+  // const notifyReward = async () => {
+  //   setLoading(true);
+  //   const contract: any = getRewardContract(chainId as any, signer);
 
-    try {
-      const tx = await contract.notifyRewardAmount(6500, {
-        gasLimit: 6000000,
-      });
-      const receipt = await tx.wait();
-      setLoading(false);
-      console.log(receipt);
+  //   try {
+  //     const tx = await contract.notifyRewardAmount(6500, {
+  //       gasLimit: 6000000,
+  //     });
+  //     const receipt = await tx.wait();
+  //     setLoading(false);
+  //     console.log(receipt);
 
-      toast.success("Thank you!, You have successfully claimed your reward", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    } catch (err: any) {
-      console.log(err, "this is an error");
-      const match = revertMatch(err);
-      if (match) {
-        toast.error(match[0] || "Opps, something went wrong!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      } else if (err.includes("user rejected action")) {
-        console.log("");
-      } else {
-        toast.error(err.message || "Opps, something went wrong!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
-      setLoading(false);
-    }
-  };
+  //     toast.success("Thank you!, You have successfully claimed your reward", {
+  //       position: toast.POSITION.TOP_RIGHT,
+  //     });
+  //   } catch (err: any) {
+  //     console.log(err, "this is an error");
+  //     const match = revertMatch(err);
+  //     if (match) {
+  //       toast.error(match[0] || "Opps, something went wrong!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     } else if (err.includes("user rejected action")) {
+  //       console.log("");
+  //     } else {
+  //       toast.error(err.message || "Opps, something went wrong!", {
+  //         position: toast.POSITION.TOP_RIGHT,
+  //       });
+  //     }
+  //     setLoading(false);
+  //   }
+  // };
 
   async function snapShotData(data: any) {
     // Default options for the fetch request
@@ -1370,15 +1370,7 @@ export const RewardModal = ({
                   ),
                   fromBigNumber(data.balanceOf, rewardToken[chainId].decimal)
                 )}{" "} */}
-                {rewardToken[chainId].symbol}
-              </ActionBtn>
-
-              <ActionBtn
-                disabled={loading}
-                className="full"
-                onClick={() => notifyReward()}
-              >
-                Notify
+                {/* {rewardToken[chainId].symbol} */}
               </ActionBtn>
             </div>
           </StakedCon>

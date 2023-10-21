@@ -138,7 +138,7 @@ enum ModelPop {
 }
 
 const Home = () => {
-  const [show, setShow] = useState<ModelPop | undefined>(ModelPop.Reward);
+  const [show, setShow] = useState<ModelPop | undefined>(undefined);
   const [open, setOpen] = useState<boolean>(false);
   const [staked, toggleStaked] = useState<boolean>(false);
   const [ended] = useState<boolean>(true);
