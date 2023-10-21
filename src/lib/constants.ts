@@ -18,6 +18,10 @@ export const contracts: any = {
         5: import.meta.env.VITE_G_STAKING_TOKEN_CONTRACT_ADDRESS,
         1: import.meta.env.VITE_STAKING_TOKEN_CONTRACT_ADDRESS,
     },
+    reward: {
+        5: import.meta.env.VITE_G_REWARD_CONTRACT_ADDRESS,
+        1: import.meta.env.VITE_REWARD_CONTRACT_ADDRESS,
+    },
     multicall: {
         5: import.meta.env.VITE_GOERLI_MULTICALL_CONRACT_ADDRESS
     }

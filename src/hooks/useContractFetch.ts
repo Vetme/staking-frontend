@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useEthersProvider } from './useProvider';
-import { getStakingContract } from '@/helpers/contract';
+import { getRewardContract, getStakingContract } from '@/helpers/contract';
 import { useAccount } from 'wagmi';
 import { stakingToken } from '@/lib/constants';
 
@@ -66,6 +66,56 @@ export function useContractFetch({ chainId, staked }: { chainId?: number, staked
     useEffect(() => {
         getData()
     }, [address, staked])
+
+
+    return {
+        loading,
+        data,
+        errors
+    }
+}
+
+
+
+export function useRContractFetch({ chainId }: { chainId?: number } = {}) {
+    const [loading, setLoading] = useState<boolean>(false)
+    const { isConnected, address } = useAccount();
+    const provider = useEthersProvider()
+    const [data, setData] = useState<any>({
+        totalForStake: 0,
+        totalReward: 0,
+        rewarded: false,
+    });
+    const [errors, setError] = useState([]);
+
+    const getData = async () => {
+        setLoading(true)
+        const contract: any = getRewardContract(
+            chainId as any,
+            provider
+        )
+
+        try {
+            if (!isConnected) throw Error('Wallet not connected')
+            const totalReward = await contract.totalReward()
+            const rewarded = await contract.rewarded(address)
+
+            setData({
+                totalReward,
+                rewarded,
+            })
+            setLoading(false)
+        } catch (error: any) {
+            console.log(error)
+            setLoading(false)
+            setError(error.message || "Something went wrong")
+        }
+
+    }
+
+    useEffect(() => {
+        getData()
+    }, [address])
 
 
     return {

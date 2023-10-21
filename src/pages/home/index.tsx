@@ -6,11 +6,11 @@ import {
   PoorShape,
   StakingShape,
 } from "@/components/Icons";
-import { StakedModal, StakingModal } from "@/components/Modal";
+import { RewardModal, StakedModal, StakingModal } from "@/components/Modal";
 import Message from "@/components/Modal/Message";
 import StackingAds from "@/components/StackingAds";
 import { computeUsdPrice, fromBigNumber, getStatus, truncate } from "@/helpers";
-import { useContractFetch } from "@/hooks/useContractFetch";
+import { useContractFetch, useRContractFetch } from "@/hooks/useContractFetch";
 import { stakingToken } from "@/lib/constants";
 import { useWeb3Modal } from "@web3modal/react";
 // import { useMulticallv2 } from "@/helpers/multicall";
@@ -134,10 +134,11 @@ const Count = styled.div``;
 enum ModelPop {
   Stake = "stake",
   Staked = "staked",
+  Reward = "reward",
 }
 
 const Home = () => {
-  const [show, setShow] = useState<ModelPop | undefined>(undefined);
+  const [show, setShow] = useState<ModelPop | undefined>(ModelPop.Reward);
   const [open, setOpen] = useState<boolean>(false);
   const [staked, toggleStaked] = useState<boolean>(false);
   const [ended] = useState<boolean>(true);
@@ -147,6 +148,7 @@ const Home = () => {
   const chainId: number = useChainId();
 
   const { loading, data } = useContractFetch({ chainId, staked });
+  const { data: rdata } = useRContractFetch({ chainId });
 
   return (
     <div>
@@ -284,6 +286,24 @@ const Home = () => {
                         Stake
                       </Button>
                     )}
+
+                    <Button
+                      className="secondary"
+                      onClick={() => setShow(ModelPop.Reward)}
+                    >
+                      Get Reward
+                    </Button>
+                    {/* {fromBigNumber(
+                      data.balanceOf,
+                      stakingToken[chainId].decimal
+                    ) > 0 && (
+                      <Button
+                        className="secondary"
+                        onClick={() => setShow(ModelPop.Reward)}
+                      >
+                        Get Reward
+                      </Button>
+                    )} */}
                   </Flex>
 
                   <Spacer />
@@ -318,6 +338,13 @@ const Home = () => {
         show={show == ModelPop.Staked ? true : false}
         handleClose={() => setShow(undefined)}
         data={data}
+        revalidate={() => toggleStaked((prev) => !prev)}
+      />
+      <RewardModal
+        show={show == ModelPop.Reward ? true : false}
+        handleClose={() => setShow(undefined)}
+        data={data}
+        rdata={rdata}
         revalidate={() => toggleStaked((prev) => !prev)}
       />
       {/* <button onClick={() => setOpen(true)}>Open</button> */}
