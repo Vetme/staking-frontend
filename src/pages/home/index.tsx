@@ -17,7 +17,7 @@ import { useWeb3Modal } from "@web3modal/react";
 import { useState } from "react";
 import styled from "styled-components";
 import { useAccount, useChainId } from "wagmi";
-import Countdown from "react-countdown";
+// import Countdown from "react-countdown";
 
 const StakeCon = styled.div`
   width: 237.813px;
@@ -98,7 +98,7 @@ const UsdVal = styled.span`
   bottom: -23px;
 `;
 
-const Count = styled.div``;
+// const Count = styled.div``;
 
 // const Count = styled.div`
 //   font-size: 82px;
@@ -158,8 +158,8 @@ const Home = () => {
         </div>
         <Spacer height={50} />
         <div className="container">
-          <Count>
-            <IMessage className="success">
+          {/* <Count>
+            <IMessage >
               <Text as="h4" size="normal">
                 Reward starts in...
               </Text>
@@ -169,7 +169,7 @@ const Home = () => {
                 )}
               />
             </IMessage>
-          </Count>
+          </Count> */}
           <Spacer height={50} />
           {isConnected ? (
             <div>
@@ -287,12 +287,12 @@ const Home = () => {
                       </Button>
                     )}
 
-                    <Button
+                    {/* <Button
                       className="secondary"
                       onClick={() => setShow(ModelPop.Reward)}
                     >
                       Get Reward
-                    </Button>
+                    </Button> */}
                     {/* {fromBigNumber(
                       data.balanceOf,
                       stakingToken[chainId].decimal
@@ -308,11 +308,11 @@ const Home = () => {
 
                   <Spacer />
 
-                  <IMessage>
+                  <IMessage className="success">
                     {(!getStatus(data.finishAt) || ended) && (
                       <Text size="normal">
-                        The staking period has ended. Please await our next
-                        round..
+                        Reward will be paid on Friday. Please withdraw now (and
+                        opt out after 48hrs)
                       </Text>
                     )}
                   </IMessage>

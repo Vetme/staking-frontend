@@ -62,10 +62,10 @@ export const rewardToken: Record<number, {
         address: contracts.reward_token[5]
     },
     1: {
-        decimal: 6,
-        symbol: 'USDT',
-        name: 'Tether USD',
-        address: contracts.reward_token[5]
+        decimal: 9,
+        symbol: 'VetMe',
+        name: 'VetMe',
+        address: contracts.reward_token[1]
     },
 
 }

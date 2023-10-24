@@ -1113,11 +1113,9 @@ export const RewardModal = ({
     const contract: any = getRewardContract(chainId as any, signer);
 
     try {
-      const tx = await contract.claimReward(
-        {
+      const tx = await contract.redeemReward({
         gasLimit: 2100000,
-       }
-      );
+      });
       const receipt = await tx.wait();
       setLoading(false);
 
