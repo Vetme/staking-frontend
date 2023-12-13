@@ -6,23 +6,18 @@ import {
   PoorShape,
   StakingShape,
 } from "@/components/Icons";
-// import { RewardModal } from "@/components/Modal";
+import { RewardModal, StakedModal, StakingModal } from "@/components/Modal";
 import Message from "@/components/Modal/Message";
-import { MainRewardModal } from "@/components/Modal/Reward";
-import { MainStakingModal } from "@/components/Modal/Stake";
-import { MainStakedModal } from "@/components/Modal/Staked";
-import StackingAds from "@/components/StackingAds";
+// import StackingAds from "@/components/StackingAds";
 import { computeUsdPrice, fromBigNumber, getStatus, truncate } from "@/helpers";
-import {
-  useContractFetch,
-  useRContractFetch,
-} from "@/hooks/useContractFetchV2";
+import { useContractFetch, useRContractFetch } from "@/hooks/useContractFetch";
 import { stakingToken } from "@/lib/constants";
-import { getStake } from "@/services/api";
 import { useWeb3Modal } from "@web3modal/react";
-import { useState, useEffect } from "react";
+// import { useMulticallv2 } from "@/helpers/multicall";
+import { useState } from "react";
 import styled from "styled-components";
 import { useAccount, useChainId } from "wagmi";
+// import Countdown from "react-countdown";
 
 const StakeCon = styled.div`
   width: 237.813px;
@@ -103,89 +98,34 @@ const UsdVal = styled.span`
   bottom: -23px;
 `;
 
-// const Count = styled.div``;
-
-// const Count = styled.div`
-//   font-size: 82px;
-//   color: #170728;
-
-//   height: 100svh;
-//   background: #80ad8b3b;
-//   inset: 0;
-//   width: 100%;
-//   position: fixed;
-//   z-index: 9999999;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   backdrop-filter: blur(5px);
-
-//   h4 {
-//     margin-bottom: 20px;
-//     font-weight: 700;
-//   }
-
-//   @media (max-width: 640px) {
-//     font-size: 48px;
-//     > div {
-//       margin-top: -50px;
-//     }
-//   }
-// `;
-
-// import stakingAbi from "@/abi/staking.json";
-// import { contracts } from "@/lib/constants";
-
 enum ModelPop {
   Stake = "stake",
   Staked = "staked",
   Reward = "reward",
 }
 
-interface IStake {
-  account: string;
-  amount: number;
-}
-
-const Home = () => {
+const StakingV1 = () => {
   const [show, setShow] = useState<ModelPop | undefined>(undefined);
   const [open, setOpen] = useState<boolean>(false);
   const [staked, toggleStaked] = useState<boolean>(false);
-  const [stake, setStake] = useState<IStake>({
-    amount: 0,
-    account: "",
-  });
-  const [fetching, setFetching] = useState<boolean>(false);
-  const { isConnected, address } = useAccount();
+  const [ended] = useState<boolean>(true);
+
+  const { isConnected } = useAccount();
   const { open: openModal } = useWeb3Modal();
   const chainId: number = useChainId();
 
   const { loading, data } = useContractFetch({ chainId, staked });
   const { data: rdata } = useRContractFetch({ chainId });
 
-  useEffect(() => {
-    const fetchStake = async () => {
-      try {
-        setFetching(true);
-        const data: any = await getStake(address);
-        setStake(data.stake);
-        setFetching(false);
-      } catch (err) {
-        setFetching(false);
-      }
-    };
-
-    fetchStake();
-  }, [address, staked]);
-
   return (
     <div>
       <div className="h-screen ">
         <div className="container">
-          <StackingAds />
-        </div>
-        <Spacer height={50} />
-        <div className="container">
+          <IMessage className="info">
+            {(!getStatus(data.finishAt) || ended) && (
+              <Text size="normal">VetMe Staking V1</Text>
+            )}
+          </IMessage>
           {/* <Count>
             <IMessage >
               <Text as="h4" size="normal">
@@ -214,20 +154,22 @@ const Home = () => {
                           <EarningIcon />
                           <div>
                             <h2>
-                              {stake?.amount == 0 ? "0" : stake?.amount || "--"}
+                              {fromBigNumber(
+                                data.balanceOf,
+                                stakingToken[chainId].decimal
+                              ).toLocaleString()}
                               &nbsp;
                               {stakingToken[chainId].symbol}
                             </h2>
                             <UsdVal>
                               ~$
-                              {stake?.amount &&
-                                computeUsdPrice(
-                                  data.usd,
-                                  fromBigNumber(
-                                    stake?.amount as any,
-                                    stakingToken[chainId].decimal
-                                  )
-                                ).toLocaleString()}
+                              {computeUsdPrice(
+                                data.usd,
+                                fromBigNumber(
+                                  data.balanceOf,
+                                  stakingToken[chainId].decimal
+                                )
+                              ).toLocaleString()}
                             </UsdVal>
                           </div>
                         </Flex>
@@ -292,7 +234,10 @@ const Home = () => {
 
                   <Spacer height={24} />
                   <Flex gap={20} wrap>
-                    {stake?.amount > 0 && (
+                    {fromBigNumber(
+                      data.balanceOf,
+                      stakingToken[chainId].decimal
+                    ) > 0 && (
                       <Button
                         className="secondary "
                         onClick={() => setShow(ModelPop.Staked)}
@@ -301,21 +246,14 @@ const Home = () => {
                       </Button>
                     )}
 
-                    <Button
-                      className="primary "
-                      onClick={() => setShow(ModelPop.Stake)}
-                    >
-                      Stake
-                    </Button>
-{/* 
-                    {getStatus(data.finishAt) && (
+                    {getStatus(data.finishAt) && !ended && (
                       <Button
                         className="primary "
                         onClick={() => setShow(ModelPop.Stake)}
                       >
                         Stake
                       </Button>
-                    )} */}
+                    )}
 
                     {/* <Button
                       className="secondary"
@@ -339,8 +277,11 @@ const Home = () => {
                   <Spacer />
 
                   <IMessage className="success">
-                    {!getStatus(data.finishAt) && (
-                      <Text size="normal">Reward will be paid soon.</Text>
+                    {(!getStatus(data.finishAt) || ended) && (
+                      <Text size="normal">
+                        Reward will be paid on Friday. Please withdraw now (and
+                        opt out after 48hrs)
+                      </Text>
                     )}
                   </IMessage>
                 </div>
@@ -355,20 +296,19 @@ const Home = () => {
           )}
         </div>
       </div>
-      <MainStakingModal
+      <StakingModal
         show={show == ModelPop.Stake ? true : false}
         handleClose={() => setShow(undefined)}
         revalidate={() => toggleStaked((prev) => !prev)}
         data={data}
       />
-      <MainStakedModal
+      <StakedModal
         show={show == ModelPop.Staked ? true : false}
         handleClose={() => setShow(undefined)}
         data={data}
-        stake={stake}
         revalidate={() => toggleStaked((prev) => !prev)}
       />
-      <MainRewardModal
+      <RewardModal
         show={show == ModelPop.Reward ? true : false}
         handleClose={() => setShow(undefined)}
         data={data}
@@ -386,4 +326,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default StakingV1;

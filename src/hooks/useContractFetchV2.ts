@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useEthersProvider } from './useProvider';
-import { getRewardContract, getStakingContract, getV2StakingContract } from '@/helpers/contract';
-import { useAccount, useChainId } from 'wagmi';
+import { getRewardContract, getV2StakingContract } from '@/helpers/contract';
+import { useAccount } from 'wagmi';
 import { stakingToken } from '@/lib/constants';
-
 
 export function useContractFetch({ chainId, staked }: { chainId?: number, staked?: boolean } = {}) {
     const [loading, setLoading] = useState<boolean>(false)
@@ -24,7 +23,7 @@ export function useContractFetch({ chainId, staked }: { chainId?: number, staked
 
     const getData = async () => {
         setLoading(true)
-        const contract: any = getStakingContract(
+        const contract: any = getV2StakingContract(
             chainId as any,
             provider
         )
@@ -32,29 +31,26 @@ export function useContractFetch({ chainId, staked }: { chainId?: number, staked
 
         try {
             if (!isConnected) throw Error('Wallet not connected')
-            const balanceOf = await contract.balanceOf(address)
             const duration = await contract.duration()
             const totalForStake = await contract.totalForStake()
             const finishAt = await contract.finishAt()
             const w_pending = await contract.withdraw_pending(address)
-            const totalReward = await contract.totalReward()
             const totalSupply = await contract.totalSupply()
-            const rewarded = await contract.rewarded(address)
+            const totalReward = await contract.totalReward()
 
             const res = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${stakingToken[chainId as number].address}`)
             const token = await res.json()
 
             setData({
-                balanceOf,
                 duration,
                 totalForStake,
                 finishAt,
                 w_pending,
-                totalReward,
-                rewarded,
                 totalSupply,
+                totalReward,
                 usd: token?.market_data?.current_price?.usd || 0
             })
+
             setLoading(false)
         } catch (error: any) {
             console.log(error)
@@ -125,57 +121,3 @@ export function useRContractFetch({ chainId }: { chainId?: number } = {}) {
         errors
     }
 }
-
-
-export function useStakesFetch() {
-    const [loading, setLoading] = useState<boolean>(false)
-    const [data, setData] = useState<any>([]);
-    const chainId: number = useChainId();
-    const provider = useEthersProvider()
-    const { isConnected } = useAccount();
-
-    useEffect(() => {
-
-        const getData = async () => {
-            setLoading(true)
-            const contract: any = getV2StakingContract(
-                chainId as any,
-                provider
-            )
-            const res = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${stakingToken[chainId as number].address}`)
-            const token = await res.json()
-
-
-            try {
-                if (!isConnected) throw Error('Wallet not connected')
-                setData([])
-                const count = await contract.count()
-
-
-                for (let i = 0; i <= count; i++) {
-                    const stake = await contract.userStakes(i)
-                    setData((prev: any) => {
-                        return [...prev, {
-                            address: stake[0],
-                            amount: stake[2],
-                            usd: token?.market_data?.current_price?.usd || 0
-                        }]
-                    });
-                }
-                setLoading(false)
-            } catch (error: any) {
-                console.log(error)
-                setLoading(false)
-            }
-
-        }
-        getData()
-    }, [chainId])
-
-
-    return {
-        loading,
-        data
-    }
-}
-

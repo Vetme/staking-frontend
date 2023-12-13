@@ -31,6 +31,7 @@ export const truncate = (
 
 export const fromBigNumber = (value: string, decimalPlaces: number) => {
   const weiBN = new BigNumber(value);
+  console.log(value, 'vao')
   const etherValue = weiBN.dividedBy(new BigNumber(10).exponentiatedBy(decimalPlaces));
   return etherValue.toNumber()
 }

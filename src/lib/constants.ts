@@ -24,7 +24,11 @@ export const contracts: any = {
     },
     multicall: {
         5: import.meta.env.VITE_GOERLI_MULTICALL_CONRACT_ADDRESS
-    }
+    },
+    staking_v2: {
+        5: import.meta.env.VITE_G_CONTRACT_ADDRESS_V2,
+        1: import.meta.env.VITE_CONTRACT_ADDRESS_V2,
+    },
 }
 
 export const stakingToken: Record<number, {
@@ -34,7 +38,7 @@ export const stakingToken: Record<number, {
     address: string;
 }> = {
     5: {
-        decimal: 18,
+        decimal: 9,
         symbol: 'XYZ',
         name: 'XYZ Token',
         address: contracts.staking_token[5]

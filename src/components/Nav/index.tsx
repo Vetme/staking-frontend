@@ -74,6 +74,9 @@ const Navigation = () => {
 
             <Action>
               <NavItems style={{ marginRight: 20 }}>
+                <Item to="/v1">
+                  <span>V1</span>
+                </Item>
                 <Item to="/how-to">
                   <span>How to</span>
                 </Item>
@@ -140,6 +143,7 @@ const Navigation = () => {
                 <Decor />
               </IconM>
               <MMenuInner>
+                <MMenuItem to="/v1">V1</MMenuItem>
                 <MMenuItem to="/how-to">How to</MMenuItem>
                 <MMenuItem to="/faq">Faq</MMenuItem>
 

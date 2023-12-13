@@ -1,6 +1,7 @@
 import { Contract, InterfaceAbi, JsonRpcProvider } from "ethers";
 
 import stakingAbi from "@/abi/staking.json"
+import stakingV2Abi from "@/abi/staking-v2.json"
 import erc20Abi from "@/abi/erc20.json"
 import multiCallAbi from "@/abi/multicall.json"
 import rewardAbi from "@/abi/reward.json"
@@ -42,6 +43,18 @@ export const getStakingContract = (
     return getContract(
         stakingAbi,
         contracts.staking[chain],
+        chain,
+        provider
+    ) as unknown;
+};
+
+export const getV2StakingContract = (
+    chain: Blockchain,
+    provider?: any
+): unknown => {
+    return getContract(
+        stakingV2Abi,
+        contracts.staking_v2[chain],
         chain,
         provider
     ) as unknown;
