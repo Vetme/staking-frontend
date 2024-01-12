@@ -501,7 +501,8 @@ export const MainStakedModal = ({
               <SItem className="sd">
                 <Text>Redemption Period</Text>
                 <Text weight="700">
-                  {getDateFromSeconds(data.finishAt.toString())}
+                  {/* {getDateFromSeconds(data.finishAt.toString())} */}
+                  2024-02-14 11:59 PM
                 </Text>
               </SItem>
             </SDetials>

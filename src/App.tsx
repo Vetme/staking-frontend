@@ -1,29 +1,37 @@
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { WEB3_MODEL_PROJECT_ID, chains } from "./lib/constants";
+import {
+  INFURA_API_KEY,
+  WEB3_MODEL_PROJECT_ID,
+  chains as chs,
+} from "./lib/constants";
 import AllRoutes from "./routes";
 import { GlobalStyles } from "./styles";
-import {
-  w3mConnectors,
-  w3mProvider,
-  EthereumClient,
-} from "@web3modal/ethereum";
-import { Web3Modal } from "@web3modal/react";
+// import { w3mProvider, EthereumClient } from "@web3modal/ethereum";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
-
-const projectId = WEB3_MODEL_PROJECT_ID;
-
+import { InjectedConnector } from "wagmi/connectors/injected";
+import { infuraProvider } from "wagmi/providers/infura";
+import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
 function App() {
-  const { publicClient } = configureChains(chains, [
-    w3mProvider({ projectId }),
+  const { chains, publicClient } = configureChains(chs, [
+    infuraProvider({ apiKey: INFURA_API_KEY }),
   ]);
+
   const wagmiConfig = createConfig({
     autoConnect: true,
-    connectors: w3mConnectors({ projectId, chains }),
+    connectors: [
+      new InjectedConnector({
+        chains,
+      }),
+      new WalletConnectConnector({
+        chains,
+        options: {
+          projectId: WEB3_MODEL_PROJECT_ID,
+        },
+      }),
+    ],
     publicClient,
   });
-
-  const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
   return (
     <WagmiConfig config={wagmiConfig}>
@@ -31,8 +39,6 @@ function App() {
       <GlobalStyles />
 
       <div style={{ position: "relative", zIndex: 999999 }}>
-        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-
         <ToastContainer />
       </div>
     </WagmiConfig>

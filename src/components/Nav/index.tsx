@@ -20,14 +20,15 @@ import { Center, Flex, Spacer, Overlay } from "../";
 import { Button } from "@/components/Button";
 import { truncate } from "@/helpers";
 import { Decor, LogoSVG, Wallet, Logout } from "../Icons";
-import { useWeb3Modal } from "@web3modal/react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
+import Connect from "../Modal/Connect";
 
 const Navigation = () => {
   const [open, setOpen] = useState<boolean>(false);
+  const [show, setShow] = useState<boolean>(false);
   const [menu, setMenu] = useState<boolean>(false);
-  const { open: openModal, close: closeModel } = useWeb3Modal();
   // const [cMenu, setCMenu] = useState<boolean>(false);
+  const { disconnect } = useDisconnect();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ const Navigation = () => {
                   </Button>
                 </Flex>
               ) : (
-                <Button className="primary " onClick={() => openModal()}>
+                <Button className="primary " onClick={() => setShow(true)}>
                   Connect Wallet
                 </Button>
               )}
@@ -124,7 +125,13 @@ const Navigation = () => {
                 <MMenuItem style={{ textAlign: "start" }} to="/stakes">
                   My Stakes
                 </MMenuItem>
-                <Button onClick={() => closeModel()} className="primary ">
+                <Button
+                  onClick={() => {
+                    setMenu(false);
+                    disconnect();
+                  }}
+                  className="primary "
+                >
                   <Logout />
                   Disconnect
                 </Button>
@@ -159,7 +166,7 @@ const Navigation = () => {
                       </Button>
                     </Flex>
                   ) : (
-                    <Button className="primary" onClick={() => openModal()}>
+                    <Button className="primary" onClick={() => setShow(true)}>
                       Connect Wallet
                     </Button>
                   )}
@@ -170,6 +177,7 @@ const Navigation = () => {
           </NavWrapper>
         </div>
         {open && <Overlay />}
+        {<Connect show={show} handleClose={() => setShow(false)} />}
       </NavContainer>
     </>
   );

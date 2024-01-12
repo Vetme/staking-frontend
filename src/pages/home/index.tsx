@@ -6,6 +6,7 @@ import {
   PoorShape,
   StakingShape,
 } from "@/components/Icons";
+import Connect from "@/components/Modal/Connect";
 // import { RewardModal } from "@/components/Modal";
 import Message from "@/components/Modal/Message";
 import { MainRewardModal } from "@/components/Modal/Reward";
@@ -150,6 +151,7 @@ interface IStake {
 const Home = () => {
   const [show, setShow] = useState<ModelPop | undefined>(undefined);
   const [open, setOpen] = useState<boolean>(false);
+  const [showConnect, setShowConnect] = useState<boolean>(false);
   const [staked, toggleStaked] = useState<boolean>(false);
   const [stake, setStake] = useState<IStake>({
     amount: 0,
@@ -307,7 +309,7 @@ const Home = () => {
                     >
                       Stake
                     </Button>
-{/* 
+                    {/* 
                     {getStatus(data.finishAt) && (
                       <Button
                         className="primary "
@@ -348,7 +350,7 @@ const Home = () => {
             </div>
           ) : (
             <>
-              <Button className="primary" onClick={() => openModal()}>
+              <Button className="primary" onClick={() => setShowConnect(true)}>
                 Connect Wallet
               </Button>
             </>
@@ -382,6 +384,8 @@ const Home = () => {
         msg="Transaction Successful"
         headerText="Success"
       />
+
+      <Connect show={showConnect} handleClose={() => setShowConnect(false)} />
     </div>
   );
 };

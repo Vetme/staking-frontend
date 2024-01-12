@@ -62,7 +62,7 @@ export function useContractFetch({ chainId, staked }: { chainId?: number, staked
 
     useEffect(() => {
         getData()
-    }, [address, staked])
+    }, [address, staked, isConnected])
 
 
     return {
