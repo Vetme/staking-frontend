@@ -603,7 +603,7 @@ export const MainStakingModal = ({
                       </Flex>
                       <Text size="s2">
                         {/* {getDateFromSeconds(data.finishAt.toString())} */}
-                        2024-02-14 11:59 PM
+                        2024-03-15 11:59 PM
                       </Text>
                     </Flex>
                   </StateInfo>

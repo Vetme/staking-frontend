@@ -342,7 +342,9 @@ const Home = () => {
 
                   <IMessage className="success">
                     {!getStatus(data.finishAt) && (
-                      <Text size="normal">Reward will be paid soon.</Text>
+                      <Text size="normal">
+                        Staking rewards will be shared on the 20th of March.
+                      </Text>
                     )}
                   </IMessage>
                 </div>
