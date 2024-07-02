@@ -3,6 +3,7 @@ import { goerli, mainnet } from "wagmi/chains";
 
 export const WEB3_MODEL_PROJECT_ID = import.meta.env.VITE_WEB3_MODEL_PROJECT_ID;
 export const INFURA_API_KEY = import.meta.env.VITE_INFURA_API_KEY;
+export const REWARD_DATE = "2024-08-02 11:59 PM";
 
 export const chains = [mainnet, goerli];
 

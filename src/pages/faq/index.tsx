@@ -24,7 +24,7 @@ const faqData = [
   {
     question: "In what form are the staking rewards paid?",
     answer:
-      "Staking rewards are paid in USDT (Tether), providing stability to your earnings.",
+      "Staking rewards are paid in Eth or VetMe tokens, providing stability to your earnings.",
   },
   {
     question: "How are staking rewards calculated and distributed?",

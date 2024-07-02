@@ -5,7 +5,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { Dot, LineDivide } from "../Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { getERC20Contract, getV2StakingContract } from "@/helpers/contract";
-import { BaseURL, contracts, stakingToken } from "@/lib/constants";
+import { BaseURL, REWARD_DATE, contracts, stakingToken } from "@/lib/constants";
 import { useAccount, useChainId } from "wagmi";
 import { useEthersProvider } from "@/hooks/useProvider";
 import { useEthersSigner } from "@/hooks/useSigner";
@@ -340,10 +340,12 @@ export const MainStakingModal = ({
         amount.toString(),
         stakingToken[chainId].decimal
       );
-
+      await createStake({
+        account: address,
+        reward_token: reward_token,
+      });
       const tx = await contract.stake(value);
       const receipt = await tx.wait();
-      console.log(receipt);
       const requestData = {
         method: "POST",
         headers: {
@@ -366,12 +368,6 @@ export const MainStakingModal = ({
       };
 
       await fetch(`${BaseURL}/staking`, requestData);
-      await createStake({
-        amount: +amount,
-        transactionHash: receipt.hash,
-        account: address,
-        reward_token: reward_token,
-      });
 
       setLoading(false);
       getAllowance();
@@ -381,7 +377,6 @@ export const MainStakingModal = ({
         position: toast.POSITION.TOP_RIGHT,
       });
     } catch (err: any) {
-      console.log(err);
       const match = revertMatch(err);
       if (match) {
         toast.error(match[0] || "Opps, something went wrong!", {
@@ -603,7 +598,7 @@ export const MainStakingModal = ({
                       </Flex>
                       <Text size="s2">
                         {/* {getDateFromSeconds(data.finishAt.toString())} */}
-                        2024-03-15 11:59 PM
+                        {REWARD_DATE}
                       </Text>
                     </Flex>
                   </StateInfo>

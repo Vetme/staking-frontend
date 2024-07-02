@@ -5,7 +5,7 @@ import { ReactNode, useState } from "react";
 import { ArrowRight } from "../Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { getV2StakingContract } from "@/helpers/contract";
-import { rewardToken, stakingToken } from "@/lib/constants";
+import { REWARD_DATE, rewardToken, stakingToken } from "@/lib/constants";
 import { useAccount, useChainId } from "wagmi";
 import { useEthersSigner } from "@/hooks/useSigner";
 import {
@@ -168,6 +168,22 @@ const Issue = styled.div`
   cursor: pointer;
 `;
 
+const IMessage = styled.div`
+  background: #fff9e7;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  width: fit-content;
+
+  &.danger {
+    background: #ffe7e7;
+  }
+
+  &.success {
+    background: #e7fff2;
+  }
+`;
+
 interface IModal {
   handleClose: () => void;
   show: boolean;
@@ -242,7 +258,7 @@ export const MainStakedModal = ({
       setLoading(false);
       revalidate();
       toast.success(
-        "Request Sent, You will be able to withdraw you funds in 24h",
+        "Request Sent, You will be able to withdraw you funds in 48h",
         {
           position: toast.POSITION.TOP_RIGHT,
         }
@@ -421,12 +437,10 @@ export const MainStakedModal = ({
             {/* <Text size="h3" as="h2" color="#170728">
               A0B1C012
             </Text> */}
-
             <SItem>
               <Text>Staking Period</Text>
               <Text>{getDateFromSeconds(data.finishAt.toString())}</Text>
             </SItem>
-
             <SItem>
               <Text>Total Staking Pool</Text>
               <Text>
@@ -438,7 +452,6 @@ export const MainStakedModal = ({
                 {stakingToken[chainId].symbol}
               </Text>
             </SItem>
-
             <SItem>
               <Text>Current Revenue Share</Text>
               <Text>
@@ -450,12 +463,10 @@ export const MainStakedModal = ({
                 {rewardToken[chainId].symbol}
               </Text>
             </SItem>
-
             <SItem>
               <Text>Reward Token</Text>
               <Text>{stake?.reward_token}</Text>
             </SItem>
-
             <SItem>
               <Text>Status</Text>
               <Text>
@@ -464,7 +475,6 @@ export const MainStakedModal = ({
                   : " Staking period is over"}
               </Text>
             </SItem>
-
             <SDetials>
               <Text weight="700" color="#fff">
                 Stake Details
@@ -502,17 +512,22 @@ export const MainStakedModal = ({
                 <Text>Redemption Period</Text>
                 <Text weight="700">
                   {/* {getDateFromSeconds(data.finishAt.toString())} */}
-                  2024-03-15 11:59 PM
+                  {REWARD_DATE}
                 </Text>
               </SItem>
             </SDetials>
-
             <Issue>
               <Text>Having issues? Get Help</Text>
               <ArrowRight />
             </Issue>
             <Spacer height={26} />
+            <IMessage className="danger">
+              <Text size="normal">
+                If you withdraw before the revshare, you will lose your rewards
+              </Text>
+            </IMessage>
 
+            <Spacer height={26} />
             <Flex gap={20}>
               {isPending(data.w_pending) ? (
                 <div>

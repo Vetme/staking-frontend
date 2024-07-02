@@ -127,8 +127,8 @@ const Navigation = () => {
                 </MMenuItem>
                 <Button
                   onClick={() => {
-                    setMenu(false);
                     disconnect();
+                    setMenu(false);
                   }}
                   className="primary "
                 >
